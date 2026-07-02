@@ -1,0 +1,15 @@
+{
+  "name": "pawlink",
+  "version": "1.0.0",
+  "description": "PawLink - Piattaforma per il Soccorso e la Gestione Randagi",
+  "scripts": {
+    "install-all": "npm install --prefix client && npm install --prefix server",
+    "server": "npm start --prefix server",
+    "client": "npm run dev --prefix client",
+    "dev": "npx concurrently \"npm run server\" \"npm run client\""
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  }
+}
