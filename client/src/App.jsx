@@ -61,6 +61,9 @@ export default function App() {
   const [filterType, setFilterType] = useState('all');
   const [filterStatus, setFilterStatus] = useState('all');
 
+  // Guest Mode Auth Modal state
+  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+
   // Test Server Connection & Load Initial Data
   useEffect(() => {
     checkServerConnection();
@@ -245,6 +248,7 @@ export default function App() {
           setToken(data.token);
           setUser(data.user);
           loadServerData();
+          setIsAuthModalOpen(false); // Success - close modal
         } else {
           setAuthError(data.message || 'Errore autenticazione');
         }
@@ -262,6 +266,7 @@ export default function App() {
           localStorage.setItem('pwl_emulated_user', JSON.stringify(userSession));
           const userChats = db.chats.filter(c => c.members.includes(found.id) || c.id === 'chat-general');
           setChats(userChats);
+          setIsAuthModalOpen(false); // Success - close modal
         } else {
           // If no users found, let's create a default sandbox user instantly
           const userSession = { id: 'usr-vol', name: 'Samuele (Demo Volontario)', email: email, role: 'volontario', points: 150, phone: '333 1234567' };
@@ -274,6 +279,7 @@ export default function App() {
           
           const userChats = db.chats.filter(c => c.members.includes(userSession.id) || c.id === 'chat-general');
           setChats(userChats);
+          setIsAuthModalOpen(false); // Success - close modal
         }
       } else {
         const newUser = {
@@ -291,6 +297,7 @@ export default function App() {
         setUser(newUser);
         localStorage.setItem('pwl_emulated_user', JSON.stringify(newUser));
         setChats(db.chats.filter(c => c.members.includes(newUser.id) || c.id === 'chat-general'));
+        setIsAuthModalOpen(false); // Success - close modal
       }
     }
   };
@@ -390,6 +397,11 @@ export default function App() {
 
   // Take Charge
   const handleTakeCharge = async (reportId) => {
+    if (!user) {
+      setAuthMode('login');
+      setIsAuthModalOpen(true);
+      return;
+    }
     if (isServerOnline) {
       try {
         const res = await fetch(`${API_BASE}/reports/${reportId}/take-charge`, {
@@ -544,6 +556,11 @@ export default function App() {
 
   // Redeem Reward
   const handleRedeemReward = async (rewardId) => {
+    if (!user) {
+      setAuthMode('login');
+      setIsAuthModalOpen(true);
+      return;
+    }
     if (isServerOnline) {
       try {
         const res = await fetch(`${API_BASE}/rewards/${rewardId}/redeem`, {
@@ -627,7 +644,11 @@ export default function App() {
 
   // Click on Custom Town Map to position Marker
   const handleMapClick = (lat, lng) => {
-    if (!user) return;
+    if (!user) {
+      setAuthMode('register');
+      setIsAuthModalOpen(true);
+      return;
+    }
     setNewReportLat(lat.toFixed(4));
     setNewReportLng(lng.toFixed(4));
     setShowReportModal(true);
@@ -645,117 +666,6 @@ export default function App() {
       <div className="min-h-screen flex flex-col items-center justify-center bg-[#0b0f19] text-gray-200">
         <Loader className="w-12 h-12 text-[#10b981] animate-spin mb-4" />
         <p className="font-display text-lg">Caricamento PawLink in corso...</p>
-      </div>
-    );
-  }
-
-  // --- RENDERING REGISTER / LOGIN ---
-  if (!user) {
-    return (
-      <div className="min-h-screen flex items-center justify-center px-4 py-12">
-        <div className="glass-panel max-w-md w-full p-8 animate-fade-in">
-          <div className="flex flex-col items-center mb-8">
-            <div className="w-16 h-16 rounded-2xl bg-gradient-to-tr from-[#10b981] to-[#059669] flex items-center justify-center shadow-lg shadow-[#10b981]/25 mb-4">
-              <Heart className="w-8 h-8 text-white fill-white" />
-            </div>
-            <h1 className="text-3xl font-extrabold tracking-tight text-white font-display">PawLink</h1>
-            <p className="text-sm text-gray-400 mt-2 text-center">
-              Piattaforma per la tutela, il soccorso e la cura dei randagi
-            </p>
-          </div>
-
-          <form onSubmit={handleAuthSubmit} className="space-y-4">
-            {authMode === 'register' && (
-              <>
-                <div>
-                  <label className="block text-xs font-semibold text-gray-300 uppercase mb-1">Nome Completo</label>
-                  <input 
-                    type="text" required
-                    className="form-input w-full"
-                    placeholder="Esempio: Samuele Polimeni"
-                    value={name} onChange={e => setName(e.target.value)}
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs font-semibold text-gray-300 uppercase mb-1">Telefono</label>
-                  <input 
-                    type="tel"
-                    className="form-input w-full"
-                    placeholder="Esempio: 333 1234567"
-                    value={phone} onChange={e => setPhone(e.target.value)}
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs font-semibold text-gray-300 uppercase mb-2">Il tuo Ruolo</label>
-                  <div className="grid grid-cols-2 gap-2">
-                    <label className="cursor-pointer">
-                      <input 
-                        type="radio" name="role" className="hidden role-radio" 
-                        checked={role === 'cittadino'} onChange={() => setRole('cittadino')}
-                      />
-                      <div className="role-card-label text-center py-2 text-sm">Cittadino</div>
-                    </label>
-                    <label className="cursor-pointer">
-                      <input 
-                        type="radio" name="role" className="hidden role-radio" 
-                        checked={role === 'volontario'} onChange={() => setRole('volontario')}
-                      />
-                      <div className="role-card-label text-center py-2 text-sm">Volontario</div>
-                    </label>
-                  </div>
-                </div>
-              </>
-            )}
-
-            <div>
-              <label className="block text-xs font-semibold text-gray-300 uppercase mb-1">Email</label>
-              <input 
-                type="email" required
-                className="form-input w-full"
-                placeholder="nome@esempio.it"
-                value={email} onChange={e => setEmail(e.target.value)}
-              />
-            </div>
-
-            <div>
-              <label className="block text-xs font-semibold text-gray-300 uppercase mb-1">Password</label>
-              <input 
-                type="password" required
-                className="form-input w-full"
-                placeholder="••••••••"
-                value={password} onChange={e => setPassword(e.target.value)}
-              />
-            </div>
-
-            {authError && (
-              <div className="bg-red-950/40 border border-red-500/50 rounded-lg p-3 text-xs text-red-300 flex items-center gap-2">
-                <AlertTriangle className="w-4 h-4 shrink-0" />
-                <span>{authError}</span>
-              </div>
-            )}
-
-            <button type="submit" className="btn-primary w-full justify-center py-3 text-base">
-              {authMode === 'login' ? 'Accedi' : 'Registrati'}
-            </button>
-          </form>
-
-          <div className="mt-6 text-center text-sm">
-            <button 
-              className="text-[#10b981] hover:underline"
-              onClick={() => {
-                setAuthMode(authMode === 'login' ? 'register' : 'login');
-                setAuthError('');
-              }}
-            >
-              {authMode === 'login' ? 'Non hai un account? Registrati' : 'Hai già un account? Accedi'}
-            </button>
-          </div>
-
-          <div className="mt-8 pt-6 border-t border-gray-800 flex items-center justify-center gap-2 text-xs text-gray-500">
-            <Shield className="w-4 h-4" />
-            <span>Connessione protetta & Moderazione attiva</span>
-          </div>
-        </div>
       </div>
     );
   }
@@ -782,25 +692,38 @@ export default function App() {
 
         {/* User profile & Actions */}
         <div className="flex items-center gap-4">
-          <div className="glass-panel px-4 py-1.5 flex items-center gap-3">
-            <div className="w-8 h-8 rounded-full bg-emerald-950 border border-emerald-500/30 flex items-center justify-center text-emerald-400 font-bold text-sm">
-              {user.name[0]}
-            </div>
-            <div className="text-left">
-              <div className="text-xs font-semibold flex items-center gap-1">
-                {user.name}
-                {user.role === 'volontario' && <span className="px-1.5 py-0.5 rounded bg-emerald-500/10 text-emerald-400 text-[9px] border border-emerald-500/20 font-bold uppercase">Volontario</span>}
+          {user ? (
+            <>
+              <div className="glass-panel px-4 py-1.5 flex items-center gap-3">
+                <div className="w-8 h-8 rounded-full bg-emerald-950 border border-emerald-500/30 flex items-center justify-center text-emerald-400 font-bold text-sm">
+                  {user.name[0]}
+                </div>
+                <div className="text-left">
+                  <div className="text-xs font-semibold flex items-center gap-1">
+                    {user.name}
+                    {user.role === 'volontario' && <span className="px-1.5 py-0.5 rounded bg-emerald-500/10 text-emerald-400 text-[9px] border border-emerald-500/20 font-bold uppercase">Volontario</span>}
+                  </div>
+                  <div className="text-[10px] text-gray-400 font-semibold flex items-center gap-1">
+                    <Award className="w-3 h-3 text-amber-500 fill-amber-500" />
+                    {user.points || 0} Punti Accumulati
+                  </div>
+                </div>
               </div>
-              <div className="text-[10px] text-gray-400 font-semibold flex items-center gap-1">
-                <Award className="w-3 h-3 text-amber-500 fill-amber-500" />
-                {user.points || 0} Punti Accumulati
-              </div>
-            </div>
-          </div>
-          
-          <button onClick={handleLogout} className="p-2.5 rounded-lg bg-gray-900 border border-gray-800 text-gray-400 hover:text-red-400 transition-colors">
-            <LogOut className="w-4 h-4" />
-          </button>
+              <button onClick={handleLogout} className="p-2.5 rounded-lg bg-gray-900 border border-gray-800 text-gray-400 hover:text-red-400 transition-colors">
+                <LogOut className="w-4 h-4" />
+              </button>
+            </>
+          ) : (
+            <button 
+              onClick={() => {
+                setAuthMode('login');
+                setIsAuthModalOpen(true);
+              }}
+              className="btn-primary text-xs py-2 px-4 bg-gradient-to-tr from-[#10b981] to-[#059669]"
+            >
+              Accedi / Registrati
+            </button>
+          )}
         </div>
       </header>
 
@@ -887,6 +810,11 @@ export default function App() {
                   <p className="text-sm text-gray-400">Clicca un punto qualsiasi della mappa per inserire una nuova segnalazione GPS.</p>
                 </div>
                 <button onClick={() => {
+                  if (!user) {
+                    setAuthMode('register');
+                    setIsAuthModalOpen(true);
+                    return;
+                  }
                   setNewReportLat(38.4250 + (Math.random() - 0.5) * 0.01);
                   setNewReportLng(15.9010 + (Math.random() - 0.5) * 0.01);
                   setShowReportModal(true);
@@ -1165,7 +1093,23 @@ export default function App() {
 
           {/* TAB 3: CHATS */}
           {currentTab === 'chat' && (
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 h-[540px] animate-fade-in">
+            !user ? (
+              <div className="glass-panel p-8 text-center flex flex-col items-center justify-center gap-4 h-[400px]">
+                <MessageSquare className="w-16 h-16 text-[#10b981] opacity-70 mb-2 animate-pulse" />
+                <h3 className="text-lg font-bold font-display text-white">Area Riservata alle Chat</h3>
+                <p className="text-sm text-gray-400 max-w-sm mx-auto">Registrati o accedi per partecipare ai canali geografici e coordinare le segnalazioni con i volontari.</p>
+                <button 
+                  onClick={() => {
+                    setAuthMode('login');
+                    setIsAuthModalOpen(true);
+                  }} 
+                  className="btn-primary mt-2"
+                >
+                  Accedi o Registrati
+                </button>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 h-[540px] animate-fade-in">
               {/* Chat List Column */}
               <div className="md:col-span-1 glass-panel p-4 flex flex-col gap-3 h-full overflow-y-auto">
                 <h3 className="text-sm font-bold text-gray-300 uppercase tracking-wider mb-2">Canali Attivi</h3>
@@ -1252,7 +1196,7 @@ export default function App() {
                 )}
               </div>
             </div>
-          )}
+          ))}
 
           {/* TAB 4: REWARDS */}
           {currentTab === 'premi' && (
@@ -1478,6 +1422,114 @@ export default function App() {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* DIALOG 2: LOGIN / REGISTER MODAL */}
+      {isAuthModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 px-4">
+          <div className="glass-panel max-w-md w-full p-8 animate-fade-in relative max-h-[90vh] overflow-y-auto">
+            <button 
+              onClick={() => setIsAuthModalOpen(false)}
+              className="absolute top-4 right-4 text-gray-400 hover:text-white font-bold text-sm bg-transparent border-0 cursor-pointer"
+            >
+              ✕
+            </button>
+            <div className="flex flex-col items-center mb-6">
+              <div className="w-12 h-12 rounded-xl bg-gradient-to-tr from-[#10b981] to-[#059669] flex items-center justify-center shadow-lg shadow-[#10b981]/25 mb-3">
+                <Heart className="w-6 h-6 text-white fill-white" />
+              </div>
+              <h3 className="text-xl font-bold text-white font-display">Area Riservata PawLink</h3>
+              <p className="text-xs text-gray-400 mt-1 text-center">Accedi o registrati per effettuare segnalazioni, prendere in carico i soccorsi o chattare.</p>
+            </div>
+
+            <form onSubmit={handleAuthSubmit} className="space-y-4">
+              {authMode === 'register' && (
+                <>
+                  <div>
+                    <label className="block text-xs font-semibold text-gray-300 uppercase mb-1">Nome Completo</label>
+                    <input 
+                      type="text" required
+                      className="form-input w-full"
+                      placeholder="Esempio: Samuele Polimeni"
+                      value={name} onChange={e => setName(e.target.value)}
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-semibold text-gray-300 uppercase mb-1">Telefono</label>
+                    <input 
+                      type="tel"
+                      className="form-input w-full"
+                      placeholder="Esempio: 333 1234567"
+                      value={phone} onChange={e => setPhone(e.target.value)}
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-semibold text-gray-300 uppercase mb-2">Il tuo Ruolo</label>
+                    <div className="grid grid-cols-2 gap-2">
+                      <label className="cursor-pointer">
+                        <input 
+                          type="radio" name="role" className="hidden role-radio" 
+                          checked={role === 'cittadino'} onChange={() => setRole('cittadino')}
+                        />
+                        <div className="role-card-label text-center py-2 text-sm">Cittadino</div>
+                      </label>
+                      <label className="cursor-pointer">
+                        <input 
+                          type="radio" name="role" className="hidden role-radio" 
+                          checked={role === 'volontario'} onChange={() => setRole('volontario')}
+                        />
+                        <div className="role-card-label text-center py-2 text-sm">Volontario</div>
+                      </label>
+                    </div>
+                  </div>
+                </>
+              )}
+
+              <div>
+                <label className="block text-xs font-semibold text-gray-300 uppercase mb-1">Email</label>
+                <input 
+                  type="email" required
+                  className="form-input w-full"
+                  placeholder="nome@esempio.it"
+                  value={email} onChange={e => setEmail(e.target.value)}
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-gray-300 uppercase mb-1">Password</label>
+                <input 
+                  type="password" required
+                  className="form-input w-full"
+                  placeholder="••••••••"
+                  value={password} onChange={e => setPassword(e.target.value)}
+                />
+              </div>
+
+              {authError && (
+                <div className="bg-red-950/40 border border-red-500/50 rounded-lg p-3 text-xs text-red-300 flex items-center gap-2">
+                  <AlertTriangle className="w-4 h-4 shrink-0" />
+                  <span>{authError}</span>
+                </div>
+              )}
+
+              <button type="submit" className="btn-primary w-full justify-center py-3 text-base">
+                {authMode === 'login' ? 'Accedi' : 'Registrati'}
+              </button>
+            </form>
+
+            <div className="mt-6 text-center text-sm">
+              <button 
+                className="text-[#10b981] hover:underline bg-transparent border-0 cursor-pointer"
+                onClick={() => {
+                  setAuthMode(authMode === 'login' ? 'register' : 'login');
+                  setAuthError('');
+                }}
+              >
+                {authMode === 'login' ? 'Non hai un account? Registrati' : 'Hai già un account? Accedi'}
+              </button>
+            </div>
           </div>
         </div>
       )}
