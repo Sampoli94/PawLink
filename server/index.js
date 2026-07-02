@@ -397,7 +397,12 @@ app.post('/api/rewards/:id/redeem', authenticateToken, (req, res) => {
   });
 });
 
-// Start Server
-app.listen(PORT, () => {
-  console.log(`Server PawLink avviato su http://localhost:${PORT}`);
-});
+// Export app for serverless / testing
+module.exports = app;
+
+// Start Server locally if run directly
+if (require.main === module) {
+  app.listen(PORT, () => {
+    console.log(`Server PawLink avviato su http://localhost:${PORT}`);
+  });
+}
