@@ -362,6 +362,14 @@ h1, h2, h3, h4, h5, h6 {
 .text-xl { font-size: 1.25rem; }
 .text-3xl { font-size: 1.875rem; }
 
+/* Custom escapes for arbitrary tailwind-like sizes */
+.text-\[8px\] { font-size: 8px; }
+.text-\[9px\] { font-size: 9px; }
+.text-\[10px\] { font-size: 10px; }
+.text-\[11px\] { font-size: 11px; }
+.max-w-\[200px\] { max-width: 200px; }
+.text-\[\#10b981\] { color: #10b981; }
+
 .font-bold { font-weight: 700; }
 .font-semibold { font-weight: 600; }
 .font-extrabold { font-weight: 800; }

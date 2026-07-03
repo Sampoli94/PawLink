@@ -1117,7 +1117,7 @@ export default function App() {
                           <span>{new Date(report.createdAt).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span>
                         </div>
 
-                        {report.status === 'segnalato' && user.role === 'volontario' && (
+                        {report.status === 'segnalato' && (!user || user.role === 'volontario') && (
                           <button 
                             onClick={() => handleTakeCharge(report.id)}
                             className="btn-primary w-full text-xs justify-center py-2 mt-2"
@@ -1126,7 +1126,7 @@ export default function App() {
                           </button>
                         )}
 
-                        {report.status === 'in_carico' && report.volunteerId === user.id && (
+                        {report.status === 'in_carico' && report.volunteerId === user?.id && (
                           <div className="grid grid-cols-2 gap-2 mt-2">
                             <button 
                               onClick={() => handleResolveReport(report.id)}
@@ -1160,7 +1160,7 @@ export default function App() {
                           </div>
                         )}
 
-                        {report.status === 'in_carico' && report.volunteerId !== user.id && (
+                        {report.status === 'in_carico' && report.volunteerId !== user?.id && (
                           <div className="text-xs bg-amber-950/20 border border-amber-500/20 rounded p-2 text-amber-400 mt-2 text-center">
                             In gestione da: <strong>{report.volunteerName}</strong>
                           </div>
@@ -1324,8 +1324,8 @@ export default function App() {
                         <span className="text-xs font-mono text-amber-400 font-bold">{rew.points} Punti</span>
                         <button 
                           onClick={() => handleRedeemReward(rew.id)}
-                          disabled={user.points < rew.points}
-                          className={`text-xs px-3 py-1.5 rounded font-bold border transition-all ${user.points >= rew.points ? 'bg-amber-500 border-amber-600 text-white cursor-pointer hover:scale-105' : 'bg-gray-800 border-gray-700 text-gray-500 cursor-not-allowed'}`}
+                          disabled={user && user.points < rew.points}
+                          className={`text-xs px-3 py-1.5 rounded font-bold border transition-all ${!user || user.points >= rew.points ? 'bg-amber-500 border-amber-600 text-white cursor-pointer hover:scale-105' : 'bg-gray-800 border-gray-700 text-gray-500 cursor-not-allowed'}`}
                         >
                           Riscatta
                         </button>
