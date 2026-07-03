@@ -376,8 +376,9 @@ h1, h2, h3, h4, h5, h6 {
 .tracking-tight { letter-spacing: -0.025em; }
 .tracking-wide { letter-spacing: 0.025em; }
 .tracking-wider { letter-spacing: 0.05em; }
-.leading-tight { line-dash: 1.25; }
+.leading-tight { line-height: 1.25; }
 .leading-relaxed { line-height: 1.625; }
+.leading-none { line-height: 1; }
 
 .text-center { text-align: center; }
 .text-left { text-align: left; }

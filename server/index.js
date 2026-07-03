@@ -29,17 +29,17 @@ const initialDb = {
   reports: [],
   chats: [],
   rewards: [
-    { id: 'rew-1', title: 'Sconto 10% cibo cani/gatti', points: 100, partner: 'PetStore Gioia' },
+    { id: 'rew-1', title: 'Sconto 10% cibo cani/gatti', points: 100, partner: 'PetStore Convenzionato' },
     { id: 'rew-2', title: 'Visita controllo gratuita', points: 300, partner: 'Clinica Vet Croce Azzurra' },
     { id: 'rew-3', title: 'Antiparassitario in omaggio', points: 150, partner: 'Farmacia degli Animali' }
   ],
   vets: [
-    { id: 'vet-1', name: 'Dr. Rossi - Clinica Vet Croce Azzurra', lat: 38.4285, lng: 15.9012, address: 'Via Roma 10, Gioia Tauro', phone: '0966 123456', emergency24h: true, verified: true },
-    { id: 'vet-2', name: 'Dr.ssa Bianchi - Studio Veterinario', lat: 38.4190, lng: 15.8950, address: 'Via Garibaldi 45, Palmi', phone: '0966 789012', emergency24h: false, verified: true }
+    { id: 'vet-1', name: 'Dr. Rossi - Clinica Vet Croce Azzurra', lat: 38.4285, lng: 15.9012, address: 'Via Roma 10', phone: '02 12345678', emergency24h: true, verified: true },
+    { id: 'vet-2', name: 'Dr.ssa Bianchi - Studio Veterinario', lat: 38.4190, lng: 15.8950, address: 'Via Garibaldi 45', phone: '02 78901234', emergency24h: false, verified: true }
   ],
   stores: [
-    { id: 'store-1', name: 'PetStore Gioia - Cibo & Accessori', lat: 38.4250, lng: 15.9050, address: 'S.S. 111, Gioia Tauro', phone: '0966 543210' },
-    { id: 'store-2', name: 'Supermercato Conad - Reparto Animali', lat: 38.4310, lng: 15.8990, address: 'Via Nazionale, Gioia Tauro', phone: '0966 999888' }
+    { id: 'store-1', name: 'PetStore - Cibo & Accessori', lat: 38.4250, lng: 15.9050, address: 'Via Nazionale 12', phone: '02 54321098' },
+    { id: 'store-2', name: 'Supermercato Conad - Reparto Animali', lat: 38.4310, lng: 15.8990, address: 'Corso Umberto 80', phone: '02 99988877' }
   ]
 };
 

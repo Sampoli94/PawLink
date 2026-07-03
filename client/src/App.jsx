@@ -352,26 +352,26 @@ export default function App() {
             id: 'chat-general',
             reportId: null,
             animalType: 'community',
-            name: 'Chat Regionale - Gioia Tauro & Dintorni',
+            name: 'Canale di Coordinamento Nazionale',
             members: ['usr-demo1', 'usr-demo2', 'usr-volunteer'],
             messages: [
-              { senderId: 'usr-demo1', senderName: 'Maria N.', text: 'Ciao a tutti! Qualcuno è in zona villa comunale per dare una mano?', timestamp: new Date(Date.now() - 4000000).toISOString() },
+              { senderId: 'usr-demo1', senderName: 'Maria N.', text: 'Ciao a tutti! Qualcuno è in zona per dare una mano con una segnalazione?', timestamp: new Date(Date.now() - 4000000).toISOString() },
               { senderId: 'usr-volunteer', senderName: 'Marco Rossano (Volontario)', text: 'Io dovrei passare da quelle parti tra mezzora, posso controllare.', timestamp: new Date(Date.now() - 3500000).toISOString() }
             ]
           }
         ],
         rewards: [
-          { id: 'rew-1', title: 'Sconto 10% cibo cani/gatti', points: 100, partner: 'PetStore Gioia' },
+          { id: 'rew-1', title: 'Sconto 10% cibo cani/gatti', points: 100, partner: 'PetStore Convenzionato' },
           { id: 'rew-2', title: 'Visita controllo gratuita', points: 300, partner: 'Clinica Vet Croce Azzurra' },
           { id: 'rew-3', title: 'Antiparassitario in omaggio', points: 150, partner: 'Farmacia degli Animali' }
         ],
         vets: [
-          { id: 'vet-1', name: 'Dr. Rossi - Clinica Vet Croce Azzurra', lat: 38.4285, lng: 15.9012, address: 'Via Roma 10, Gioia Tauro', phone: '0966 123456', emergency24h: true, verified: true },
-          { id: 'vet-2', name: 'Dr.ssa Bianchi - Studio Veterinario', lat: 38.4190, lng: 15.8950, address: 'Via Garibaldi 45, Palmi', phone: '0966 789012', emergency24h: false, verified: true }
+          { id: 'vet-1', name: 'Dr. Rossi - Clinica Vet Croce Azzurra', lat: 38.4285, lng: 15.9012, address: 'Via Roma 10', phone: '02 12345678', emergency24h: true, verified: true },
+          { id: 'vet-2', name: 'Dr.ssa Bianchi - Studio Veterinario', lat: 38.4190, lng: 15.8950, address: 'Via Garibaldi 45', phone: '02 78901234', emergency24h: false, verified: true }
         ],
         stores: [
-          { id: 'store-1', name: 'PetStore Gioia - Cibo & Accessori', lat: 38.4250, lng: 15.9050, address: 'S.S. 111, Gioia Tauro', phone: '0966 543210' },
-          { id: 'store-2', name: 'Supermercato Conad - Reparto Animali', lat: 38.4310, lng: 15.8990, address: 'Via Nazionale, Gioia Tauro', phone: '0966 999888' }
+          { id: 'store-1', name: 'PetStore - Cibo & Accessori', lat: 38.4250, lng: 15.9050, address: 'Via Nazionale 12', phone: '02 54321098' },
+          { id: 'store-2', name: 'Supermercato Conad - Reparto Animali', lat: 38.4310, lng: 15.8990, address: 'Corso Umberto 80', phone: '02 99988877' }
         ],
         hotspots: [
           { id: 'hs-1', lat: 38.4230, lng: 15.9030, count: 3 }
@@ -857,12 +857,12 @@ export default function App() {
           <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-[#10b981] to-[#059669] flex items-center justify-center">
             <Heart className="w-5 h-5 text-white fill-white" />
           </div>
-          <div>
-            <h1 className="text-xl font-bold tracking-tight text-white font-display my-0">PawLink</h1>
-            <div className="flex items-center gap-1.5 mt-0.5">
-              <span className={`w-2 h-2 rounded-full ${isServerOnline ? 'bg-emerald-500' : 'bg-amber-500 animate-pulse'}`}></span>
-              <span className="text-[10px] text-gray-400 uppercase tracking-wider font-semibold">
-                {isServerOnline ? 'Server Attivo' : 'Modalità Demo Locale'}
+          <div className="flex flex-col">
+            <h1 className="text-xl font-bold tracking-tight text-white font-display leading-none">PawLink</h1>
+            <div className="flex items-center gap-1.5 mt-1">
+              <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${isServerOnline ? 'bg-emerald-500' : 'bg-amber-500 animate-pulse'}`}></span>
+              <span className="text-[9px] text-gray-400 uppercase tracking-wider font-bold whitespace-nowrap">
+                {isServerOnline ? 'Server Attivo' : 'Demo Locale'}
               </span>
             </div>
           </div>
@@ -1435,7 +1435,7 @@ export default function App() {
 
       {/* FOOTER */}
       <footer className="glass-header mt-auto py-4 px-6 text-center text-xs text-gray-400 border-t border-white/5">
-        <p>© 2026 PawLink. Sviluppato per la protezione degli animali sul territorio di Gioia Tauro e provincia.</p>
+        <p>© 2026 PawLink. Piattaforma per la tutela, il soccorso e la salvaguardia degli animali e dei randagi su tutto il territorio.</p>
       </footer>
 
       {/* DIALOG 1: REPORT AD HOC FORM */}
