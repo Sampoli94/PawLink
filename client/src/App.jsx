@@ -132,9 +132,12 @@ export default function App() {
   // 2. Leaflet Map Initialization Hook
   useEffect(() => {
     if (currentTab === 'mappa' && mapRef.current && !mapInstanceRef.current) {
-      // Initialize map instance
-      const map = L.map(mapRef.current).setView(mapCenter, mapZoom);
+      // Initialize map instance without default zoom control
+      const map = L.map(mapRef.current, { zoomControl: false }).setView(mapCenter, mapZoom);
       mapInstanceRef.current = map;
+
+      // Add zoom control on the top-right
+      L.control.zoom({ position: 'topright' }).addTo(map);
 
       // Dark Mode tile layer (CartoDB Dark Matter)
       L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
@@ -849,8 +852,8 @@ export default function App() {
   return (
     <div className="min-h-screen flex flex-col">
       {/* HEADER */}
-      <header className="glass-header px-6 py-4 flex items-center justify-between">
-        <div className="flex items-center gap-3">
+      <header className="glass-header px-6 py-4 flex items-center justify-between gap-4">
+        <div className="flex items-center gap-3 shrink-0">
           <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-[#10b981] to-[#059669] flex items-center justify-center">
             <Heart className="w-5 h-5 text-white fill-white" />
           </div>
@@ -865,8 +868,46 @@ export default function App() {
           </div>
         </div>
 
+        {/* Desktop Tabs Navigation - Ultra Premium style */}
+        <nav className="hidden lg:flex items-center gap-1 bg-gray-950/60 p-1.5 rounded-xl border border-white/5 shadow-inner">
+          <button 
+            onClick={() => setCurrentTab('mappa')}
+            className={`px-4 py-2 rounded-lg text-xs font-semibold transition-all flex items-center gap-2 ${currentTab === 'mappa' ? 'bg-[#10b981] text-white shadow-lg shadow-[#10b981]/20' : 'text-gray-400 hover:text-gray-200 bg-transparent border-0 cursor-pointer'}`}
+          >
+            <MapPin className="w-4 h-4" /> Mappa
+          </button>
+          <button 
+            onClick={() => setCurrentTab('segnalazioni')}
+            className={`px-4 py-2 rounded-lg text-xs font-semibold transition-all flex items-center gap-2 ${currentTab === 'segnalazioni' ? 'bg-[#10b981] text-white shadow-lg shadow-[#10b981]/20' : 'text-gray-400 hover:text-gray-200 bg-transparent border-0 cursor-pointer'}`}
+          >
+            <AlertTriangle className="w-4 h-4" /> 
+            <span>Segnalazioni</span>
+            <span className="px-1.5 py-0.5 rounded bg-red-500/20 text-red-300 text-[10px] font-bold">
+              {reports.filter(r => r.status === 'segnalato').length}
+            </span>
+          </button>
+          <button 
+            onClick={() => setCurrentTab('chat')}
+            className={`px-4 py-2 rounded-lg text-xs font-semibold transition-all flex items-center gap-2 ${currentTab === 'chat' ? 'bg-[#10b981] text-white shadow-lg shadow-[#10b981]/20' : 'text-gray-400 hover:text-gray-200 bg-transparent border-0 cursor-pointer'}`}
+          >
+            <MessageSquare className="w-4 h-4" /> Chat
+          </button>
+          <button 
+            onClick={() => setCurrentTab('premi')}
+            className={`px-4 py-2 rounded-lg text-xs font-semibold transition-all flex items-center gap-2 ${currentTab === 'premi' ? 'bg-[#10b981] text-white shadow-lg shadow-[#10b981]/20' : 'text-gray-400 hover:text-gray-200 bg-transparent border-0 cursor-pointer'}`}
+          >
+            <Award className="w-4 h-4" /> Premi
+          </button>
+          <button 
+            onClick={() => setCurrentTab('triage')}
+            className={`px-4 py-2 rounded-lg text-xs font-semibold transition-all flex items-center gap-2 ${currentTab === 'triage' ? 'bg-[#10b981] text-white shadow-lg shadow-[#10b981]/20' : 'text-gray-400 hover:text-gray-200 bg-transparent border-0 cursor-pointer'}`}
+          >
+            <ShieldAlert className="w-4 h-4 text-purple-400" /> Triage IA
+          </button>
+        </nav>
+
         {/* User profile & Actions */}
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-4 shrink-0">
           {user ? (
             <>
               <div className="glass-panel px-4 py-1.5 flex items-center gap-3">
@@ -903,120 +944,77 @@ export default function App() {
       </header>
 
       {/* CORE WORKSPACE */}
-      <div className="flex-1 max-w-7xl w-full mx-auto p-4 md:p-6 grid grid-cols-1 lg:grid-cols-4 gap-6">
-        
-        {/* Navigation Sidebar */}
-        <aside className="lg:col-span-1 flex flex-col gap-3">
-          <button 
-            onClick={() => setCurrentTab('mappa')}
-            className={`w-full text-left px-4 py-3.5 rounded-xl font-semibold flex items-center justify-between transition-all ${currentTab === 'mappa' ? 'bg-[#10b981] text-white shadow-lg shadow-[#10b981]/25' : 'glass-panel glass-panel-interactive text-gray-300'}`}
-          >
-            <div className="flex items-center gap-3">
-              <MapPin className="w-5 h-5" />
-              <span>Mappa Soccorsi</span>
-            </div>
-            <span className="text-xs opacity-75 font-mono">1</span>
-          </button>
-
-          <button 
-            onClick={() => setCurrentTab('segnalazioni')}
-            className={`w-full text-left px-4 py-3.5 rounded-xl font-semibold flex items-center justify-between transition-all ${currentTab === 'segnalazioni' ? 'bg-[#10b981] text-white shadow-lg shadow-[#10b981]/25' : 'glass-panel glass-panel-interactive text-gray-300'}`}
-          >
-            <div className="flex items-center gap-3">
-              <AlertTriangle className="w-5 h-5" />
-              <span>Segnalazioni Randagi</span>
-            </div>
-            <span className="px-2 py-0.5 rounded-full bg-red-500/20 border border-red-500/30 text-red-300 text-xs font-bold">
-              {reports.filter(r => r.status === 'segnalato').length}
-            </span>
-          </button>
-
-          <button 
-            onClick={() => setCurrentTab('chat')}
-            className={`w-full text-left px-4 py-3.5 rounded-xl font-semibold flex items-center justify-between transition-all ${currentTab === 'chat' ? 'bg-[#10b981] text-white shadow-lg shadow-[#10b981]/25' : 'glass-panel glass-panel-interactive text-gray-300'}`}
-          >
-            <div className="flex items-center gap-3">
-              <MessageSquare className="w-5 h-5" />
-              <span>Chat & Canali</span>
-            </div>
-            <span className="text-xs opacity-75 font-mono">{chats.length}</span>
-          </button>
-
-          <button 
-            onClick={() => setCurrentTab('premi')}
-            className={`w-full text-left px-4 py-3.5 rounded-xl font-semibold flex items-center justify-between transition-all ${currentTab === 'premi' ? 'bg-[#10b981] text-white shadow-lg shadow-[#10b981]/25' : 'glass-panel glass-panel-interactive text-gray-300'}`}
-          >
-            <div className="flex items-center gap-3">
-              <Award className="w-5 h-5" />
-              <span>Raccolta Punti</span>
-            </div>
-            <span className="text-xs opacity-75 font-mono">P</span>
-          </button>
-
-          <button 
-            onClick={() => setCurrentTab('triage')}
-            className={`w-full text-left px-4 py-3.5 rounded-xl font-semibold flex items-center justify-between transition-all ${currentTab === 'triage' ? 'bg-[#10b981] text-white shadow-lg shadow-[#10b981]/25' : 'glass-panel glass-panel-interactive text-gray-300'}`}
-          >
-            <div className="flex items-center gap-3">
-              <ShieldAlert className="w-5 h-5" />
-              <span>Clinica Assistente IA</span>
-            </div>
-            <span className="text-[9px] uppercase bg-purple-500/20 text-purple-300 px-1.5 py-0.5 rounded border border-purple-500/30 font-bold">Beta</span>
-          </button>
-
-          <div className="mt-auto glass-panel p-4 text-xs text-gray-400">
-            <div className="flex items-center gap-2 mb-2 text-emerald-400 font-bold">
-              <Shield className="w-4 h-4" />
-              <span>Moderazione Foto</span>
-            </div>
-            <p className="leading-relaxed">Le foto caricate vengono elaborate in tempo reale. Se contengono scene cruente o sangue, verranno sfocate per rispettare la sensibilità comunitaria.</p>
-          </div>
-        </aside>
-
-        {/* Tab Contents Area */}
-        <main className="lg:col-span-3">
+      <div className="flex-1 max-w-7xl w-full mx-auto p-4 md:p-6 pb-24 md:pb-6 animate-fade-in">
+        {/* Tab Contents Area - taking full width for maximum immersion */}
+        <main className="w-full h-full">
 
           {/* TAB 1: MAP */}
           {currentTab === 'mappa' && (
-            <div className="h-full flex flex-col gap-4 animate-fade-in">
-              <div className="glass-panel p-4 flex items-center justify-between">
-                <div>
-                  <h2 className="text-xl font-bold font-display text-white">Mappa dei Soccorsi</h2>
-                  <p className="text-sm text-gray-400">Clicca un punto qualsiasi della mappa per inserire una nuova segnalazione GPS.</p>
-                </div>
+            <div className="h-[600px] flex flex-col animate-fade-in relative rounded-2xl overflow-hidden shadow-2xl border border-white/5">
+              <div ref={mapRef} className="absolute inset-0 z-10" style={{ height: '100%', width: '100%' }}></div>
+
+              {/* Floating Map Panel (Title & Instructions) */}
+              <div className="absolute top-4 left-4 z-20 max-w-sm glass-panel p-4 border border-white/10 shadow-2xl backdrop-blur-xl pointer-events-auto">
+                <h2 className="text-base font-bold font-display text-white mb-1 flex items-center gap-2">
+                  <MapPin className="w-4 h-4 text-[#10b981]" /> Mappa Soccorsi
+                </h2>
+                <p className="text-[11px] text-gray-400 leading-relaxed mb-3">
+                  Clicca in un punto qualsiasi della mappa per inserire una segnalazione GPS o clicca il pulsante qui sotto.
+                </p>
                 <button onClick={() => {
                   if (!user) {
                     setAuthMode('register');
                     setIsAuthModalOpen(true);
                     return;
                   }
-                  setNewReportLat(38.4250 + (Math.random() - 0.5) * 0.01);
-                  setNewReportLng(15.9010 + (Math.random() - 0.5) * 0.01);
+                  if (userCoords) {
+                    setNewReportLat(userCoords.lat);
+                    setNewReportLng(userCoords.lng);
+                  } else {
+                    setNewReportLat(38.4250);
+                    setNewReportLng(15.9010);
+                  }
                   setShowReportModal(true);
-                }} className="btn-primary">
+                }} className="btn-primary w-full justify-center text-xs py-2 bg-gradient-to-tr from-[#10b981] to-[#059669] shadow-lg shadow-[#10b981]/25">
                   <PlusCircle className="w-4 h-4" /> Segnala Ora
                 </button>
               </div>
-              {/* Real Leaflet Map Container */}
-              <div className="flex-1 glass-panel overflow-hidden min-h-[480px] relative flex flex-col justify-between">
-                <div ref={mapRef} className="absolute inset-0 z-10" style={{ height: '100%', width: '100%', borderRadius: '16px' }}></div>
 
-                {/* Floating Centering Button */}
-                {userCoords && (
-                  <button 
-                    onClick={() => {
-                      if (mapInstanceRef.current) {
-                        mapInstanceRef.current.setView([userCoords.lat, userCoords.lng], 15);
-                      }
-                    }}
-                    className="absolute bottom-4 right-4 z-20 p-3 rounded-full bg-[#10b981] hover:bg-emerald-600 text-white shadow-lg transition-all border-none cursor-pointer flex items-center justify-center"
-                    style={{ border: 'none', outline: 'none' }}
-                    title="Centra sulla tua posizione"
-                  >
-                    <Navigation className="w-5 h-5" />
-                  </button>
-                )}
+              {/* Floating Map Legend (Bottom Left) */}
+              <div className="absolute bottom-4 left-4 z-20 glass-panel p-3 text-[10px] w-fit flex flex-col gap-1.5 border border-white/5 shadow-2xl backdrop-blur-xl pointer-events-auto">
+                <div className="flex items-center gap-2">
+                  <span className="w-2.5 h-2.5 rounded-full bg-[#10b981] inline-block border border-white/20"></span>
+                  <span className="text-gray-300 font-semibold">Segnalazione Attiva</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="w-2.5 h-2.5 rounded-full bg-[#f59e0b] inline-block border border-white/20"></span>
+                  <span className="text-gray-300 font-semibold">In Carico / Gestione</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="w-2.5 h-2.5 rounded-full bg-[#6366f1] inline-block border border-white/20"></span>
+                  <span className="text-gray-300 font-semibold">Clinica Veterinaria</span>
+                </div>
+                <div className="flex items-center gap-2 font-semibold">
+                  <span className="w-2.5 h-2.5 rounded-full bg-rose-500 inline-block animate-ping"></span>
+                  <span className="text-gray-300 font-semibold">Hotspot Randagismo</span>
+                </div>
               </div>
+
+              {/* Floating Centering Button */}
+              {userCoords && (
+                <button 
+                  onClick={() => {
+                    if (mapInstanceRef.current) {
+                      mapInstanceRef.current.setView([userCoords.lat, userCoords.lng], 15);
+                    }
+                  }}
+                  className="absolute bottom-4 right-4 z-20 p-3 rounded-full bg-[#10b981] hover:bg-[#059669] text-white shadow-2xl transition-all border-none cursor-pointer flex items-center justify-center pointer-events-auto"
+                  style={{ border: 'none', outline: 'none' }}
+                  title="Centra sulla tua posizione"
+                >
+                  <Navigation className="w-5 h-5" />
+                </button>
+              )}
             </div>
           )}
 
@@ -1623,6 +1621,48 @@ export default function App() {
           </div>
         </div>
       )}
+
+      {/* Mobile Floating Bottom Bar */}
+      <nav className="lg:hidden fixed bottom-4 left-4 right-4 z-40 glass-panel p-2 flex justify-around items-center border border-white/10 shadow-2xl backdrop-blur-xl rounded-2xl">
+        <button 
+          onClick={() => setCurrentTab('mappa')}
+          className={`flex flex-col items-center gap-1 p-2 rounded-xl transition-all bg-transparent border-0 cursor-pointer ${currentTab === 'mappa' ? 'text-[#10b981] scale-105' : 'text-gray-400'}`}
+        >
+          <MapPin className="w-5 h-5" />
+          <span className="text-[9px] font-semibold">Mappa</span>
+        </button>
+        <button 
+          onClick={() => setCurrentTab('segnalazioni')}
+          className={`flex flex-col items-center gap-1 p-2 rounded-xl transition-all bg-transparent border-0 cursor-pointer ${currentTab === 'segnalazioni' ? 'text-[#10b981] scale-105' : 'text-gray-400'}`}
+        >
+          <div className="relative">
+            <AlertTriangle className="w-5 h-5" />
+            <span className="absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full bg-red-500 border border-[#0b0f19]"></span>
+          </div>
+          <span className="text-[9px] font-semibold">Segnalazioni</span>
+        </button>
+        <button 
+          onClick={() => setCurrentTab('chat')}
+          className={`flex flex-col items-center gap-1 p-2 rounded-xl transition-all bg-transparent border-0 cursor-pointer ${currentTab === 'chat' ? 'text-[#10b981] scale-105' : 'text-gray-400'}`}
+        >
+          <MessageSquare className="w-5 h-5" />
+          <span className="text-[9px] font-semibold">Chat</span>
+        </button>
+        <button 
+          onClick={() => setCurrentTab('premi')}
+          className={`flex flex-col items-center gap-1 p-2 rounded-xl transition-all bg-transparent border-0 cursor-pointer ${currentTab === 'premi' ? 'text-[#10b981] scale-105' : 'text-gray-400'}`}
+        >
+          <Award className="w-5 h-5" />
+          <span className="text-[9px] font-semibold">Premi</span>
+        </button>
+        <button 
+          onClick={() => setCurrentTab('triage')}
+          className={`flex flex-col items-center gap-1 p-2 rounded-xl transition-all bg-transparent border-0 cursor-pointer ${currentTab === 'triage' ? 'text-[#10b981] scale-105' : 'text-gray-400'}`}
+        >
+          <ShieldAlert className="w-5 h-5 text-purple-400" />
+          <span className="text-[9px] font-semibold text-purple-300">Triage IA</span>
+        </button>
+      </nav>
     </div>
   );
 }
