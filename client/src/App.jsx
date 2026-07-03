@@ -1,9 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { 
   MapPin, AlertTriangle, MessageSquare, Award, User, Shield, 
   CheckCircle, PlusCircle, Navigation, Info, Send, Phone, 
   Lock, Eye, Search, Filter, ShieldAlert, Heart, Calendar, LogOut, Loader
 } from 'lucide-react';
+import L from 'leaflet';
+import 'leaflet/dist/leaflet.css';
 
 const API_BASE = 'http://localhost:5000/api';
 
@@ -64,6 +66,14 @@ export default function App() {
   // Guest Mode Auth Modal state
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
 
+  // Real Map States and Refs
+  const [mapCenter, setMapCenter] = useState([38.4250, 15.9010]); // Default to Gioia Tauro
+  const [mapZoom, setMapZoom] = useState(13);
+  const [userCoords, setUserCoords] = useState(null);
+  const mapRef = useRef(null);
+  const mapInstanceRef = useRef(null);
+  const markersLayerRef = useRef(null);
+
   // Test Server Connection & Load Initial Data
   useEffect(() => {
     checkServerConnection();
@@ -98,6 +108,171 @@ export default function App() {
       setLoading(false);
     }
   };
+
+  // 1. Geolocation Hook - runs on mount
+  useEffect(() => {
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (pos) => {
+          const coords = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+          setUserCoords(coords);
+          setMapCenter([coords.lat, coords.lng]);
+          
+          // Set default coordinates for new reports
+          setNewReportLat(coords.lat.toFixed(4));
+          setNewReportLng(coords.lng.toFixed(4));
+        },
+        (err) => {
+          console.log("Geolocalizzazione rifiutata o non disponibile, uso default");
+        }
+      );
+    }
+  }, []);
+
+  // 2. Leaflet Map Initialization Hook
+  useEffect(() => {
+    if (currentTab === 'mappa' && mapRef.current && !mapInstanceRef.current) {
+      // Initialize map instance
+      const map = L.map(mapRef.current).setView(mapCenter, mapZoom);
+      mapInstanceRef.current = map;
+
+      // Dark Mode tile layer (CartoDB Dark Matter)
+      L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
+        subdomains: 'abcd',
+        maxZoom: 20
+      }).addTo(map);
+
+      // Create a layer group for active markers
+      markersLayerRef.current = L.layerGroup().addTo(map);
+
+      // Listen for map clicks to create a new report
+      map.on('click', (e) => {
+        if (!user) {
+          setAuthMode('register');
+          setIsAuthModalOpen(true);
+          return;
+        }
+        setNewReportLat(e.latlng.lat.toFixed(4));
+        setNewReportLng(e.latlng.lng.toFixed(4));
+        setShowReportModal(true);
+      });
+    }
+
+    // Clean up map instance on tab change / unmount
+    return () => {
+      if (mapInstanceRef.current) {
+        mapInstanceRef.current.remove();
+        mapInstanceRef.current = null;
+      }
+    };
+  }, [currentTab]);
+
+  // 3. Leaflet Markers Update Hook
+  useEffect(() => {
+    const map = mapInstanceRef.current;
+    if (!map) return;
+
+    const markersLayer = markersLayerRef.current;
+    if (!markersLayer) return;
+
+    // Clear old markers
+    markersLayer.clearLayers();
+
+    // Add pulsing user marker if coordinates are available
+    if (userCoords) {
+      const userMarker = L.marker([userCoords.lat, userCoords.lng], {
+        icon: L.divIcon({
+          className: 'user-location-marker',
+          html: `<div style="position: relative;">
+            <div style="width: 14px; height: 14px; background-color: #3b82f6; border-radius: 50%; border: 2px solid white; box-shadow: 0 0 8px #3b82f6;"></div>
+            <div style="position: absolute; top: -5px; left: -5px; width: 24px; height: 24px; background-color: rgba(59, 130, 246, 0.3); border-radius: 50%; animation: pulse-hotspot 2s infinite;"></div>
+          </div>`,
+          iconSize: [24, 24],
+          iconAnchor: [12, 12]
+        })
+      });
+      userMarker.bindPopup("<b>La tua posizione attuale</b>").addTo(markersLayer);
+    }
+
+    // Add Vets
+    overlays.vets?.forEach(v => {
+      const vetMarker = L.marker([v.lat, v.lng], {
+        icon: L.divIcon({
+          className: 'vet-marker',
+          html: `<div style="background-color: #6366f1; width: 18px; height: 18px; border-radius: 50%; border: 2px solid white; display: flex; align-items: center; justify-content: center; box-shadow: 0 0 8px #6366f1;">
+            <span style="color: white; font-size: 10px; font-weight: bold; margin-top: -1px;">+</span>
+          </div>`,
+          iconSize: [18, 18],
+          iconAnchor: [9, 9]
+        })
+      });
+      const popupHtml = `
+        <div style="color: #1e293b; font-family: sans-serif; font-size: 12px; width: 180px; padding: 2px;">
+          <h4 style="margin: 0 0 4px; font-size: 13px; color: #0f172a; font-weight: bold;">${v.name}</h4>
+          <p style="margin: 0 0 6px; color: #64748b; font-size: 11px;">${v.address}</p>
+          <a href="tel:${v.phone}" style="color: #6366f1; font-weight: bold; text-decoration: none; display: flex; align-items: center; gap: 4px;">
+            📞 ${v.phone}
+          </a>
+          ${v.emergency24h ? '<span style="display: inline-block; background-color: #f43f5e; color: white; font-size: 8px; font-weight: bold; padding: 1px 4px; border-radius: 3px; margin-top: 5px;">H24 PRONTO SOCCORSO</span>' : ''}
+        </div>
+      `;
+      vetMarker.bindPopup(popupHtml).addTo(markersLayer);
+    });
+
+    // Add Stores
+    overlays.stores?.forEach(s => {
+      const storeMarker = L.marker([s.lat, s.lng], {
+        icon: L.divIcon({
+          className: 'store-marker',
+          html: `<div style="background-color: #eab308; width: 14px; height: 14px; border-radius: 50%; border: 2px solid white; box-shadow: 0 0 6px #eab308;"></div>`,
+          iconSize: [14, 14],
+          iconAnchor: [7, 7]
+        })
+      });
+      const popupHtml = `
+        <div style="color: #1e293b; font-family: sans-serif; font-size: 12px; padding: 2px;">
+          <h4 style="margin: 0 0 4px; font-size: 13px; color: #0f172a; font-weight: bold;">${s.name}</h4>
+          <p style="margin: 0; color: #64748b; font-size: 11px;">${s.address}</p>
+        </div>
+      `;
+      storeMarker.bindPopup(popupHtml).addTo(markersLayer);
+    });
+
+    // Add Active Reports
+    reports.filter(r => r.status !== 'risolto').forEach(r => {
+      const color = r.status === 'in_carico' ? '#f59e0b' : '#10b981';
+      const reportMarker = L.marker([r.latitude, r.longitude], {
+        icon: L.divIcon({
+          className: 'report-marker',
+          html: `<div style="background-color: ${color}; width: 16px; height: 16px; border-radius: 50%; border: 2px solid white; box-shadow: 0 0 10px ${color}; animation: pulse-hotspot 2s infinite;"></div>`,
+          iconSize: [16, 16],
+          iconAnchor: [8, 8]
+        })
+      });
+      const popupHtml = `
+        <div style="color: #1e293b; font-family: sans-serif; font-size: 12px; width: 180px; padding: 2px;">
+          <span style="display: inline-block; background-color: ${color}; color: white; font-size: 8px; font-weight: bold; padding: 1px 4px; border-radius: 3px; margin-bottom: 4px; text-transform: uppercase;">
+            ${r.animalType} - ${r.status}
+          </span>
+          <p style="margin: 0 0 6px; font-size: 11px; line-height: 1.3; color: #334155;">${r.description}</p>
+          <div style="font-size: 9px; color: #64748b; border-top: 1px solid #f1f5f9; padding-top: 4px; margin-top: 4px;">Segnalato da: <b>${r.reporterName}</b></div>
+        </div>
+      `;
+      reportMarker.bindPopup(popupHtml).addTo(markersLayer);
+    });
+
+    // Add Hotspots (draw circles around randagism clusters)
+    overlays.hotspots?.forEach(h => {
+      L.circle([h.lat, h.lng], {
+        color: '#f43f5e',
+        fillColor: '#f43f5e',
+        fillOpacity: 0.15,
+        radius: 300 // 300m radius
+      }).addTo(markersLayer);
+    });
+
+  }, [reports, overlays, userCoords, currentTab]);
 
   // Load Data from Express Backend
   const loadServerData = async () => {
@@ -822,110 +997,25 @@ export default function App() {
                   <PlusCircle className="w-4 h-4" /> Segnala Ora
                 </button>
               </div>
+              {/* Real Leaflet Map Container */}
+              <div className="flex-1 glass-panel overflow-hidden min-h-[480px] relative flex flex-col justify-between">
+                <div ref={mapRef} className="absolute inset-0 z-10" style={{ height: '100%', width: '100%', borderRadius: '16px' }}></div>
 
-              {/* Dynamic Interactive SVG Town Map Simulation */}
-              <div className="flex-1 glass-panel p-2 min-h-[480px] relative overflow-hidden flex flex-col justify-between">
-                <div className="absolute inset-0 bg-[#0f172a] select-none">
-                  {/* Grid Lines for style */}
-                  <div className="absolute inset-0 opacity-[0.03]" style={{backgroundImage: 'radial-gradient(circle, white 1px, transparent 1px)', backgroundSize: '24px 24px'}}></div>
-                  
-                  <svg className="w-full h-full" viewBox="0 0 800 500" xmlns="http://www.w3.org/2000/svg">
-                    {/* Simulated River */}
-                    <path d="M 0,250 Q 200,200 400,300 T 800,280" fill="none" stroke="#1e293b" strokeWidth="32" opacity="0.6"/>
-                    <path d="M 0,250 Q 200,200 400,300 T 800,280" fill="none" stroke="#0e172a" strokeWidth="26"/>
-                    
-                    {/* Simulated Main Roads */}
-                    <line x1="100" y1="0" x2="100" y2="500" stroke="#1e293b" strokeWidth="8"/>
-                    <line x1="450" y1="0" x2="450" y2="500" stroke="#1e293b" strokeWidth="8"/>
-                    <line x1="0" y1="180" x2="800" y2="180" stroke="#1e293b" strokeWidth="8"/>
-                    <line x1="0" y1="380" x2="800" y2="380" stroke="#1e293b" strokeWidth="8"/>
-
-                    {/* Secondary roads */}
-                    <line x1="280" y1="180" x2="280" y2="380" stroke="#1e293b" strokeWidth="4" strokeDasharray="6,4"/>
-                    <line x1="100" y1="100" x2="450" y2="100" stroke="#1e293b" strokeWidth="4" strokeDasharray="6,4"/>
-
-                    {/* Town Park */}
-                    <rect x="180" y="30" width="180" height="100" rx="8" fill="#14532d" opacity="0.25" stroke="#15803d" strokeWidth="1"/>
-                    <text x="270" y="85" fill="#4ade80" fontSize="11" textAnchor="middle" opacity="0.6">Villa Comunale</text>
-
-                    {/* Industrial/Urban blocks */}
-                    <rect x="520" y="60" width="120" height="80" rx="6" fill="#1e293b" opacity="0.2" stroke="#334155" strokeWidth="1"/>
-                    <text x="580" y="105" fill="#94a3b8" fontSize="11" textAnchor="middle" opacity="0.6">Zona Residenziale</text>
-                    
-                    {/* Clickable Overlay Grid for simulation */}
-                    <rect x="0" y="0" width="800" height="500" fill="transparent" cursor="crosshair" onClick={(e) => {
-                      const rect = e.currentTarget.getBoundingClientRect();
-                      const x = e.clientX - rect.left;
-                      const y = e.clientY - rect.top;
-                      // map visual x,y to simulated lat/lng
-                      const lat = 38.4250 + (250 - y) * 0.0001;
-                      const lng = 15.9010 + (x - 400) * 0.0001;
-                      handleMapClick(lat, lng);
-                    }}/>
-
-                    {/* Interactive Overlay Markers (Hotspots, Vets, Reports) */}
-                    {/* Hotspots */}
-                    {overlays.hotspots?.map(hs => {
-                      // Map simulated lat/lng back to visual x/y
-                      const x = 400 + (hs.lng - 15.9010) / 0.0001;
-                      const y = 250 - (hs.lat - 38.4250) / 0.0001;
-                      return (
-                        <g key={hs.id}>
-                          <circle cx={x} cy={y} r="35" className="fill-rose-500/10 stroke-rose-500/20 stroke-1" />
-                          <circle cx={x} cy={y} r="20" className="fill-rose-500/20 animate-ping" />
-                          <circle cx={x} cy={y} r="6" fill="#f43f5e" />
-                        </g>
-                      );
-                    })}
-
-                    {/* Vets */}
-                    {overlays.vets?.map(v => {
-                      const x = 400 + (v.lng - 15.9010) / 0.0001;
-                      const y = 250 - (v.lat - 38.4250) / 0.0001;
-                      return (
-                        <g key={v.id} className="cursor-pointer">
-                          <circle cx={x} cy={y} r="18" fill="rgba(99, 102, 241, 0.2)" />
-                          <circle cx={x} cy={y} r="8" fill="#6366f1" stroke="white" strokeWidth="1.5" />
-                          <text x={x} y={y - 12} fill="#c7d2fe" fontSize="9" fontWeight="bold" textAnchor="middle">{v.name.split(' - ')[0]}</text>
-                        </g>
-                      );
-                    })}
-
-                    {/* Reports */}
-                    {reports.filter(r => r.status !== 'risolto').map(r => {
-                      const x = 400 + (r.longitude - 15.9010) / 0.0001;
-                      const y = 250 - (r.latitude - 38.4250) / 0.0001;
-                      const color = r.status === 'in_carico' ? '#f59e0b' : '#10b981';
-                      return (
-                        <g key={r.id} className="cursor-pointer">
-                          <circle cx={x} cy={y} r="20" fill="rgba(16, 185, 129, 0.15)" className="animate-pulse" />
-                          <circle cx={x} cy={y} r="8" fill={color} stroke="white" strokeWidth="1.5" />
-                          <text x={x} y={y - 12} fill="#a7f3d0" fontSize="9" fontWeight="bold" textAnchor="middle">{r.animalType.toUpperCase()}</text>
-                        </g>
-                      );
-                    })}
-                  </svg>
-                </div>
-
-                {/* Map Legend */}
-                <div className="z-10 mt-auto ml-4 mb-4 glass-panel p-3 text-xs w-fit flex flex-col gap-1.5 border border-white/5">
-                  <div className="flex items-center gap-2">
-                    <span className="w-3 h-3 rounded-full bg-[#10b981] inline-block border border-white/20"></span>
-                    <span className="text-gray-300">Segnalazione Attiva</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <span className="w-3 h-3 rounded-full bg-[#f59e0b] inline-block border border-white/20"></span>
-                    <span className="text-gray-300">Segnalazione In Carico</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <span className="w-3 h-3 rounded-full bg-[#6366f1] inline-block border border-white/20"></span>
-                    <span className="text-gray-300">Clinica Veterinaria</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <span className="w-3 h-3 rounded-full bg-rose-500 inline-block animate-ping"></span>
-                    <span className="text-gray-300">Hotspot Randagismo</span>
-                  </div>
-                </div>
+                {/* Floating Centering Button */}
+                {userCoords && (
+                  <button 
+                    onClick={() => {
+                      if (mapInstanceRef.current) {
+                        mapInstanceRef.current.setView([userCoords.lat, userCoords.lng], 15);
+                      }
+                    }}
+                    className="absolute bottom-4 right-4 z-20 p-3 rounded-full bg-[#10b981] hover:bg-emerald-600 text-white shadow-lg transition-all border-none cursor-pointer flex items-center justify-center"
+                    style={{ border: 'none', outline: 'none' }}
+                    title="Centra sulla tua posizione"
+                  >
+                    <Navigation className="w-5 h-5" />
+                  </button>
+                )}
               </div>
             </div>
           )}
