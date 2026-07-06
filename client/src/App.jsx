@@ -217,10 +217,10 @@ export default function App() {
         })
       });
       const popupHtml = `
-        <div style="color: #1e293b; font-family: sans-serif; font-size: 12px; width: 180px; padding: 2px;">
-          <h4 style="margin: 0 0 4px; font-size: 13px; color: #0f172a; font-weight: bold;">${v.name}</h4>
-          <p style="margin: 0 0 6px; color: #64748b; font-size: 11px;">${v.address}</p>
-          <a href="tel:${v.phone}" style="color: #6366f1; font-weight: bold; text-decoration: none; display: flex; align-items: center; gap: 4px;">
+        <div style="color: #f1f5f9; font-family: sans-serif; font-size: 12px; width: 180px; padding: 2px;">
+          <h4 style="margin: 0 0 4px; font-size: 13px; color: #ffffff; font-weight: bold;">${v.name}</h4>
+          <p style="margin: 0 0 6px; color: #94a3b8; font-size: 11px;">${v.address}</p>
+          <a href="tel:${v.phone}" style="color: #818cf8; font-weight: bold; text-decoration: none; display: flex; align-items: center; gap: 4px;">
             📞 ${v.phone}
           </a>
           ${v.emergency24h ? '<span style="display: inline-block; background-color: #f43f5e; color: white; font-size: 8px; font-weight: bold; padding: 1px 4px; border-radius: 3px; margin-top: 5px;">H24 PRONTO SOCCORSO</span>' : ''}
@@ -240,9 +240,9 @@ export default function App() {
         })
       });
       const popupHtml = `
-        <div style="color: #1e293b; font-family: sans-serif; font-size: 12px; padding: 2px;">
-          <h4 style="margin: 0 0 4px; font-size: 13px; color: #0f172a; font-weight: bold;">${s.name}</h4>
-          <p style="margin: 0; color: #64748b; font-size: 11px;">${s.address}</p>
+        <div style="color: #f1f5f9; font-family: sans-serif; font-size: 12px; padding: 2px;">
+          <h4 style="margin: 0 0 4px; font-size: 13px; color: #ffffff; font-weight: bold;">${s.name}</h4>
+          <p style="margin: 0; color: #94a3b8; font-size: 11px;">${s.address}</p>
         </div>
       `;
       storeMarker.bindPopup(popupHtml).addTo(markersLayer);
@@ -260,12 +260,12 @@ export default function App() {
         })
       });
       const popupHtml = `
-        <div style="color: #1e293b; font-family: sans-serif; font-size: 12px; width: 180px; padding: 2px;">
+        <div style="color: #f1f5f9; font-family: sans-serif; font-size: 12px; width: 180px; padding: 2px;">
           <span style="display: inline-block; background-color: ${color}; color: white; font-size: 8px; font-weight: bold; padding: 1px 4px; border-radius: 3px; margin-bottom: 4px; text-transform: uppercase;">
             ${r.animalType} - ${r.status}
           </span>
-          <p style="margin: 0 0 6px; font-size: 11px; line-height: 1.3; color: #334155;">${r.description}</p>
-          <div style="font-size: 9px; color: #64748b; border-top: 1px solid #f1f5f9; padding-top: 4px; margin-top: 4px;">Segnalato da: <b>${r.reporterName}</b></div>
+          <p style="margin: 0 0 6px; font-size: 11px; line-height: 1.3; color: #cbd5e1;">${r.description}</p>
+          <div style="font-size: 9px; color: #94a3b8; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 4px; margin-top: 4px;">Segnalato da: <b>${r.reporterName}</b></div>
         </div>
       `;
       reportMarker.bindPopup(popupHtml).addTo(markersLayer);
