@@ -865,14 +865,7 @@ export default function App() {
     <div className="min-h-screen flex flex-col">
       {/* HEADER */}
       <header className="glass-header px-6 py-4 flex items-center justify-between gap-4">
-        <div className="flex items-center gap-3 shrink-0">
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-[#10b981] to-[#059669] flex items-center justify-center">
-            <PawPrint className="w-5 h-5 text-white fill-white" />
-          </div>
-          <h1 className="text-xl font-bold tracking-tight text-white font-display leading-none">PawLink</h1>
-        </div>
-
-        {/* Desktop Tabs Navigation - Ultra Premium style */}
+        {/* Desktop Tabs Navigation - Ultra Premium style (on the Left) */}
         <nav className="hidden lg:flex items-center gap-1 bg-gray-950/60 p-1.5 rounded-xl border border-white/5 shadow-inner">
           <button 
             onClick={() => setCurrentTab('mappa')}
@@ -910,10 +903,17 @@ export default function App() {
           </button>
         </nav>
 
-        {/* User profile & Actions */}
-        <div className="flex items-center gap-4 shrink-0">
-          {user ? (
-            <>
+        {/* Right Side Stack: Logo (top) and Auth/Profile (bottom) */}
+        <div className="flex flex-col items-end gap-2 shrink-0">
+          {/* Logo (Top Right) */}
+          <div className="flex items-center gap-2">
+            <PawPrint className="w-5 h-5 text-[#10b981]" />
+            <h1 className="text-lg font-bold tracking-tight text-white font-display leading-none">PawLink</h1>
+          </div>
+
+          {/* Auth/Profile (Bottom Right) */}
+          <div className="flex items-center gap-2">
+            {user ? (
               <div className="glass-panel px-4 py-1.5 flex items-center gap-3">
                 <div className="w-8 h-8 rounded-full bg-emerald-950 border border-emerald-500/30 flex items-center justify-center text-emerald-400 font-bold text-sm">
                   {user.name[0]}
@@ -928,22 +928,26 @@ export default function App() {
                     {user.points || 0} Punti Accumulati
                   </div>
                 </div>
+                <button 
+                  onClick={handleLogout} 
+                  className="p-1 rounded bg-transparent border-0 hover:bg-white/10 text-gray-400 hover:text-red-400 transition-colors cursor-pointer"
+                  title="Disconnetti"
+                >
+                  <LogOut className="w-4 h-4" />
+                </button>
               </div>
-              <button onClick={handleLogout} className="p-2.5 rounded-lg bg-gray-900 border border-gray-800 text-gray-400 hover:text-red-400 transition-colors">
-                <LogOut className="w-4 h-4" />
+            ) : (
+              <button 
+                onClick={() => {
+                  setAuthMode('login');
+                  setIsAuthModalOpen(true);
+                }}
+                className="btn-primary text-xs py-1.5 px-4 bg-gradient-to-tr from-[#10b981] to-[#059669] shadow-lg shadow-[#10b981]/25 hover:scale-105 transition-all"
+              >
+                Accedi / Registrati
               </button>
-            </>
-          ) : (
-            <button 
-              onClick={() => {
-                setAuthMode('login');
-                setIsAuthModalOpen(true);
-              }}
-              className="btn-primary text-xs py-2 px-4 bg-gradient-to-tr from-[#10b981] to-[#059669]"
-            >
-              Accedi / Registrati
-            </button>
-          )}
+            )}
+          </div>
         </div>
       </header>
 

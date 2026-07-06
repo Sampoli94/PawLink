@@ -13,15 +13,19 @@ const JWT_SECRET = 'pawlink-secret-key-12345';
 // Middlewares
 app.use(cors());
 app.use(express.json());
-app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
-
-// Ensure Uploads & DB folders exist
-const uploadsDir = path.join(__dirname, 'uploads');
+// Ensure Uploads & DB folders exist (using writeable /tmp folder when deployed on Vercel)
+const uploadsDir = process.env.VERCEL
+  ? path.join('/tmp', 'uploads')
+  : path.join(__dirname, 'uploads');
 if (!fs.existsSync(uploadsDir)) {
-  fs.mkdirSync(uploadsDir);
+  fs.mkdirSync(uploadsDir, { recursive: true });
 }
 
-const DB_FILE = path.join(__dirname, 'database.json');
+app.use('/uploads', express.static(uploadsDir));
+
+const DB_FILE = process.env.VERCEL
+  ? path.join('/tmp', 'database.json')
+  : path.join(__dirname, 'database.json');
 
 // Initial Database Structure
 const initialDb = {
