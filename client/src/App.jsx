@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { 
   MapPin, AlertTriangle, MessageSquare, Award, User, Shield, 
   CheckCircle, PlusCircle, Navigation, Info, Send, Phone, 
-  Lock, Eye, Search, Filter, ShieldAlert, Heart, Calendar, LogOut, Loader
+  Lock, Eye, Search, Filter, ShieldAlert, Heart, Calendar, LogOut, Loader, PawPrint
 } from 'lucide-react';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
@@ -867,17 +867,9 @@ export default function App() {
       <header className="glass-header px-6 py-4 flex items-center justify-between gap-4">
         <div className="flex items-center gap-3 shrink-0">
           <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-[#10b981] to-[#059669] flex items-center justify-center">
-            <Heart className="w-5 h-5 text-white fill-white" />
+            <PawPrint className="w-5 h-5 text-white fill-white" />
           </div>
-          <div className="flex flex-col">
-            <h1 className="text-xl font-bold tracking-tight text-white font-display leading-none">PawLink</h1>
-            <div className="flex items-center gap-1.5 mt-1">
-              <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${isServerOnline ? 'bg-emerald-500' : 'bg-amber-500 animate-pulse'}`}></span>
-              <span className="text-[9px] text-gray-400 uppercase tracking-wider font-bold whitespace-nowrap">
-                {isServerOnline ? 'Server Attivo' : 'Demo Locale'}
-              </span>
-            </div>
-          </div>
+          <h1 className="text-xl font-bold tracking-tight text-white font-display leading-none">PawLink</h1>
         </div>
 
         {/* Desktop Tabs Navigation - Ultra Premium style */}
@@ -962,17 +954,17 @@ export default function App() {
 
           {/* TAB 1: MAP */}
           {currentTab === 'mappa' && (
-            <div className="h-[600px] flex flex-col animate-fade-in relative rounded-2xl overflow-hidden shadow-2xl border border-white/5">
-              <div ref={mapRef} className="absolute inset-0 z-10" style={{ height: '100%', width: '100%' }}></div>
-
-              {/* Floating Map Panel (Title & Instructions) */}
-              <div className="absolute top-4 left-4 z-20 max-w-sm glass-panel p-4 border border-white/10 shadow-2xl backdrop-blur-xl pointer-events-auto">
-                <h2 className="text-base font-bold font-display text-white mb-1 flex items-center gap-2">
-                  <MapPin className="w-4 h-4 text-[#10b981]" /> Mappa Soccorsi
-                </h2>
-                <p className="text-[11px] text-gray-400 leading-relaxed mb-3">
-                  Clicca in un punto qualsiasi della mappa per inserire una segnalazione GPS o clicca il pulsante qui sotto.
-                </p>
+            <div className="space-y-4 animate-fade-in">
+              {/* Non-overlapping Map Info Panel */}
+              <div className="glass-panel p-4 border border-white/10 flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div>
+                  <h2 className="text-base font-bold font-display text-white flex items-center gap-2">
+                    <MapPin className="w-4 h-4 text-[#10b981]" /> Mappa Soccorsi
+                  </h2>
+                  <p className="text-xs text-gray-400 mt-1">
+                    Visualizza i soccorsi attivi, le cliniche e gli hotspot. Clicca in un punto qualsiasi della mappa per inserire una segnalazione GPS.
+                  </p>
+                </div>
                 <button onClick={() => {
                   if (!user) {
                     setAuthMode('register');
@@ -987,46 +979,51 @@ export default function App() {
                     setNewReportLng(15.9010);
                   }
                   setShowReportModal(true);
-                }} className="btn-primary w-full justify-center text-xs py-2 bg-gradient-to-tr from-[#10b981] to-[#059669] shadow-lg shadow-[#10b981]/25">
+                }} className="btn-primary shrink-0 justify-center text-xs py-2 px-5 bg-gradient-to-tr from-[#10b981] to-[#059669] shadow-lg shadow-[#10b981]/25">
                   <PlusCircle className="w-4 h-4" /> Segnala Ora
                 </button>
               </div>
 
-              {/* Floating Map Legend (Bottom Left) */}
-              <div className="absolute bottom-4 left-4 z-20 glass-panel p-3 text-[10px] w-fit flex flex-col gap-1.5 border border-white/5 shadow-2xl backdrop-blur-xl pointer-events-auto">
-                <div className="flex items-center gap-2">
-                  <span className="w-2.5 h-2.5 rounded-full bg-[#10b981] inline-block border border-white/20"></span>
-                  <span className="text-gray-300 font-semibold">Segnalazione Attiva</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <span className="w-2.5 h-2.5 rounded-full bg-[#f59e0b] inline-block border border-white/20"></span>
-                  <span className="text-gray-300 font-semibold">In Carico / Gestione</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <span className="w-2.5 h-2.5 rounded-full bg-[#6366f1] inline-block border border-white/20"></span>
-                  <span className="text-gray-300 font-semibold">Clinica Veterinaria</span>
-                </div>
-                <div className="flex items-center gap-2 font-semibold">
-                  <span className="w-2.5 h-2.5 rounded-full bg-rose-500 inline-block animate-ping"></span>
-                  <span className="text-gray-300 font-semibold">Hotspot Randagismo</span>
-                </div>
-              </div>
+              {/* Map Container */}
+              <div className="h-[600px] flex flex-col relative rounded-2xl overflow-hidden shadow-2xl border border-white/5">
+                <div ref={mapRef} className="absolute inset-0 z-10" style={{ height: '100%', width: '100%' }}></div>
 
-              {/* Floating Centering Button */}
-              {userCoords && (
-                <button 
-                  onClick={() => {
-                    if (mapInstanceRef.current) {
-                      mapInstanceRef.current.setView([userCoords.lat, userCoords.lng], 15);
-                    }
-                  }}
-                  className="absolute bottom-4 right-4 z-20 p-3 rounded-full bg-[#10b981] hover:bg-[#059669] text-white shadow-2xl transition-all border-none cursor-pointer flex items-center justify-center pointer-events-auto"
-                  style={{ border: 'none', outline: 'none' }}
-                  title="Centra sulla tua posizione"
-                >
-                  <Navigation className="w-5 h-5" />
-                </button>
-              )}
+                {/* Floating Map Legend (Bottom Left) */}
+                <div className="absolute bottom-4 left-4 z-20 glass-panel p-3 text-[10px] w-fit flex flex-col gap-1.5 border border-white/5 shadow-2xl backdrop-blur-xl pointer-events-auto">
+                  <div className="flex items-center gap-2">
+                    <span className="w-2.5 h-2.5 rounded-full bg-[#10b981] inline-block border border-white/20"></span>
+                    <span className="text-gray-300 font-semibold">Segnalazione Attiva</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="w-2.5 h-2.5 rounded-full bg-[#f59e0b] inline-block border border-white/20"></span>
+                    <span className="text-gray-300 font-semibold">In Carico / Gestione</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="w-2.5 h-2.5 rounded-full bg-[#6366f1] inline-block border border-white/20"></span>
+                    <span className="text-gray-300 font-semibold">Clinica Veterinaria</span>
+                  </div>
+                  <div className="flex items-center gap-2 font-semibold">
+                    <span className="w-2.5 h-2.5 rounded-full bg-rose-500 inline-block animate-ping"></span>
+                    <span className="text-gray-300 font-semibold">Hotspot Randagismo</span>
+                  </div>
+                </div>
+
+                {/* Floating Centering Button */}
+                {userCoords && (
+                  <button 
+                    onClick={() => {
+                      if (mapInstanceRef.current) {
+                        mapInstanceRef.current.setView([userCoords.lat, userCoords.lng], 15);
+                      }
+                    }}
+                    className="absolute bottom-4 right-4 z-20 p-3 rounded-full bg-[#10b981] hover:bg-[#059669] text-white shadow-2xl transition-all border-none cursor-pointer flex items-center justify-center pointer-events-auto"
+                    style={{ border: 'none', outline: 'none' }}
+                    title="Centra sulla tua posizione"
+                  >
+                    <Navigation className="w-5 h-5" />
+                  </button>
+                )}
+              </div>
             </div>
           )}
 
