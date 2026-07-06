@@ -282,22 +282,22 @@ export default function App() {
     try {
       const repRes = await fetch(`${API_BASE}/reports`);
       const repData = await repRes.json();
-      setReports(repData);
+      setReports(Array.isArray(repData) ? repData : []);
 
       const mapRes = await fetch(`${API_BASE}/map/overlays`);
       const mapData = await mapRes.json();
-      setOverlays(mapData);
+      setOverlays(mapData && typeof mapData === 'object' ? mapData : { vets: [], stores: [], hotspots: [] });
 
       const rewRes = await fetch(`${API_BASE}/rewards`);
       const rewData = await rewRes.json();
-      setRewards(rewData);
+      setRewards(Array.isArray(rewData) ? rewData : []);
 
       if (token) {
         const chatRes = await fetch(`${API_BASE}/chats`, {
           headers: { 'Authorization': `Bearer ${token}` }
         });
         const chatData = await chatRes.json();
-        setChats(chatData);
+        setChats(Array.isArray(chatData) ? chatData : []);
       }
     } catch (err) {
       console.error("Errore nel caricamento dati server:", err);
@@ -382,9 +382,13 @@ export default function App() {
     }
 
     const db = JSON.parse(localDb);
-    setReports(db.reports);
-    setRewards(db.rewards);
-    setOverlays({ vets: db.vets, stores: db.stores, hotspots: db.hotspots });
+    setReports(db.reports || []);
+    setRewards(db.rewards || []);
+    setOverlays({ 
+      vets: db.vets || [], 
+      stores: db.stores || [], 
+      hotspots: db.hotspots || [] 
+    });
 
     // Emulated Session Check
     const emulatedUser = localStorage.getItem('pwl_emulated_user');
@@ -392,7 +396,7 @@ export default function App() {
       setUser(JSON.parse(emulatedUser));
       // filter chats for this user
       const currentUser = JSON.parse(emulatedUser);
-      const userChats = db.chats.filter(c => c.members.includes(currentUser.id) || c.id === 'chat-general');
+      const userChats = (db.chats || []).filter(c => c.members.includes(currentUser.id) || c.id === 'chat-general');
       setChats(userChats);
     }
   };
