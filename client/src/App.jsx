@@ -73,6 +73,12 @@ export default function App() {
   const mapRef = useRef(null);
   const mapInstanceRef = useRef(null);
   const markersLayerRef = useRef(null);
+  const userRef = useRef(user);
+
+  // Keep userRef updated to prevent closure stale state in Leaflet click handler
+  useEffect(() => {
+    userRef.current = user;
+  }, [user]);
 
   // Test Server Connection & Load Initial Data
   useEffect(() => {
@@ -151,7 +157,7 @@ export default function App() {
 
       // Listen for map clicks to create a new report
       map.on('click', (e) => {
-        if (!user) {
+        if (!userRef.current) {
           setAuthMode('register');
           setIsAuthModalOpen(true);
           return;
@@ -169,7 +175,7 @@ export default function App() {
         mapInstanceRef.current = null;
       }
     };
-  }, [currentTab]);
+  }, [currentTab, loading]);
 
   // 3. Leaflet Markers Update Hook
   useEffect(() => {
@@ -275,7 +281,7 @@ export default function App() {
       }).addTo(markersLayer);
     });
 
-  }, [reports, overlays, userCoords, currentTab]);
+  }, [reports, overlays, userCoords, currentTab, loading]);
 
   // Load Data from Express Backend
   const loadServerData = async () => {
