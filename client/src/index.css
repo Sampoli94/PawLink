@@ -369,6 +369,10 @@ h1, h2, h3, h4, h5, h6 {
 .text-\[11px\] { font-size: 11px; }
 .max-w-\[200px\] { max-width: 200px; }
 .text-\[\#10b981\] { color: #10b981; }
+.h-\[600px\] { height: 600px; }
+.h-\[400px\] { height: 400px; }
+.h-\[540px\] { height: 540px; }
+.max-h-\[90vh\] { max-height: 90vh; }
 
 .font-bold { font-weight: 700; }
 .font-semibold { font-weight: 600; }

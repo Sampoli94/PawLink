@@ -451,7 +451,7 @@ export default function App() {
           setIsAuthModalOpen(false); // Success - close modal
         } else {
           // If no users found, let's create a default sandbox user instantly
-          const userSession = { id: 'usr-vol', name: 'Samuele (Demo Volontario)', email: email, role: 'volontario', points: 150, phone: '333 1234567' };
+          const userSession = { id: 'usr-vol', name: 'Marco (Demo Volontario)', email: email, role: 'volontario', points: 150, phone: '333 1234567' };
           setUser(userSession);
           localStorage.setItem('pwl_emulated_user', JSON.stringify(userSession));
           
@@ -1544,7 +1544,7 @@ export default function App() {
                     <input 
                       type="text" required
                       className="form-input w-full"
-                      placeholder="Esempio: Samuele Polimeni"
+                      placeholder="Esempio: Mario Rossi"
                       value={name} onChange={e => setName(e.target.value)}
                     />
                   </div>
