@@ -7,7 +7,9 @@ import {
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 
-const API_BASE = 'http://localhost:5000/api';
+const API_BASE = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+  ? 'http://localhost:5000/api'
+  : '/api';
 
 // Predefined mock photos for easy selection in local/mock testing
 const MOCK_ANIMAL_PHOTOS = [
@@ -1299,9 +1301,35 @@ export default function App() {
           {/* TAB 4: REWARDS */}
           {currentTab === 'premi' && (
             <div className="space-y-6 animate-fade-in">
-              <div className="glass-panel p-5">
-                <h2 className="text-xl font-bold font-display text-white">Raccolta Punti & Premi</h2>
-                <p className="text-sm text-gray-400">Più soccorsi completi, più accumuli punti spendibili in sconti presso i nostri partner commerciali locali.</p>
+              <div className="glass-panel p-5 border-amber-500/20">
+                <h2 className="text-xl font-bold font-display text-white flex items-center gap-2">
+                  <Award className="w-6 h-6 text-amber-400" /> Catalogo Premi & Regolamento Punti
+                </h2>
+                <p className="text-xs text-gray-400 mt-1 leading-relaxed">
+                  Usa i punti guadagnati aiutando la community e salvando animali randagi per riscattare sconti e vantaggi esclusivi.
+                </p>
+                <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4 border-t border-white/5 pt-4 text-[11px] leading-relaxed">
+                  <div>
+                    <h4 className="font-semibold text-emerald-400 mb-1 flex items-center gap-1.5 uppercase tracking-wider text-[10px]">
+                      🟢 Come Guadagnare Punti:
+                    </h4>
+                    <ul className="list-disc pl-4 space-y-1 text-gray-400">
+                      <li>Segnala un animale smarrito/ferito sulla mappa (<b>+10 pt</b>)</li>
+                      <li>Prendi in carico un soccorso attivo (<b>+20 pt</b>)</li>
+                      <li>Risolvi con successo un caso di soccorso (<b>+50 pt</b>)</li>
+                    </ul>
+                  </div>
+                  <div>
+                    <h4 className="font-semibold text-amber-400 mb-1 flex items-center gap-1.5 uppercase tracking-wider text-[10px]">
+                      🟡 Come Riscattare i Premi:
+                    </h4>
+                    <ul className="list-disc pl-4 space-y-1 text-gray-400">
+                      <li>Scegli un premio dal catalogo in basso</li>
+                      <li>Clicca su <b>Riscatta</b> per scalare i punti</li>
+                      <li>Mostra il codice coupon generato all'attività partner!</li>
+                    </ul>
+                  </div>
+                </div>
               </div>
 
               {redeemedCoupon && (
