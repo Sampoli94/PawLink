@@ -418,6 +418,15 @@ async function initDb() {
       }
     } catch (err) {
       console.error('[PawLink DB] Failed to initialize PostgreSQL tables:', err);
+      // IMPORTANTE: se l'inizializzazione fallisce (es. un blip di rete
+      // durante il pre-warm a freddo), NON dobbiamo lasciare initPromise
+      // puntato a una Promise gia' rifiutata per sempre. Senza questo reset,
+      // ogni richiesta futura in questa stessa istanza serverless (anche
+      // minuti dopo, a connessione perfettamente funzionante) rifiuterebbe
+      // immediatamente riusando quella stessa Promise fallita, "avvelenando"
+      // il container per tutta la sua vita. Resettando a null, il prossimo
+      // initDb() ritenta da capo con una connessione nuova.
+      initPromise = null;
       throw err;
     }
   })();
