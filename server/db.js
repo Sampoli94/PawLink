@@ -1,7 +1,7 @@
 require('dotenv').config();
 const fs = require('fs');
 const path = require('path');
-const { Pool } = require('pg');
+const { Client } = require('pg');
 
 const connectionString =
   process.env.POSTGRES_URL ||
@@ -11,49 +11,69 @@ const connectionString =
 
 const isPg = Boolean(connectionString);
 
+const pgClientConfig = isPg
+  ? {
+      connectionString,
+      ssl:
+        connectionString.includes('localhost') || connectionString.includes('127.0.0.1')
+          ? false
+          : { rejectUnauthorized: false },
+      connectionTimeoutMillis: 10000,
+    }
+  : null;
+
+// In ambiente serverless (Vercel) un Pool "pg-pool" tradizionale vive tra
+// un'invocazione e l'altra della stessa funzione: quando Vercel "congela"
+// l'istanza e poi la ripristina, lo stato interno del pool (client in coda,
+// socket ormai morti) puo' restare inconsistente. Il sintomo osservato in
+// produzione era che OGNI pool.query() falliva con "Connection terminated
+// due to connection timeout" — non perche' il database fosse irraggiungibile
+// (un endpoint diagnostico con una connessione "usa e getta" si connetteva
+// sempre in pochi millisecondi), ma perche' pg-pool restava bloccato ad
+// aspettare un client dal pool che non si liberava mai.
+// Soluzione: eliminare del tutto il pool persistente. Ogni query apre una
+// connessione dedicata e la chiude subito dopo. E' leggermente piu' lento
+// (un handshake TCP/TLS in piu' per richiesta) ma molto piu' affidabile in
+// un contesto "una funzione per richiesta" come questo, e coerente con come
+// PgBouncer (la pooler di Supabase su porta 6543) gestisce comunque le
+// connessioni a monte.
+async function runWithFreshClient(fn) {
+  const client = new Client(pgClientConfig);
+  await client.connect();
+  try {
+    return await fn(client);
+  } finally {
+    client.end().catch(() => {});
+  }
+}
+
 let pool = null;
 if (isPg) {
-  pool = new Pool({
-    connectionString,
-    ssl:
-      connectionString.includes('localhost') || connectionString.includes('127.0.0.1')
-        ? false
-        : { rejectUnauthorized: false },
-    // Ambiente serverless (Vercel): ogni istanza della funzione va e viene,
-    // quindi non ha senso un pool "largo" come su un server sempre acceso.
-    // max basso + idle timeout corto riducono le connessioni tenute aperte
-    // che Vercel puo' "congelare" e far morire silenziosamente tra una
-    // richiesta e l'altra.
-    max: 1,
-    idleTimeoutMillis: 5000,
-    connectionTimeoutMillis: 10000,
-    allowExitOnIdle: true,
-  });
-
-  pool.on('error', (err) => {
-    console.error('[PawLink DB] Unexpected error on idle Postgres client:', err.message);
-  });
-
-  // Se una connessione tenuta nel pool muore mentre la funzione era
-  // "congelata" (tipico su Vercel/serverless), la query fallisce con
-  // "Connection terminated". Invece di far fallire subito la richiesta
-  // all'utente, ritentiamo UNA volta con una connessione fresca.
-  const rawQuery = pool.query.bind(pool);
-  pool.query = async (...args) => {
-    try {
-      return await rawQuery(...args);
-    } catch (err) {
-      const msg = (err && err.message) || '';
-      const isStaleConnection =
-        msg.includes('Connection terminated') ||
-        msg.includes('timeout') ||
-        msg.includes('ECONNRESET') ||
-        err?.code === 'ECONNRESET' ||
-        err?.code === '57P01';
-      if (!isStaleConnection) throw err;
-      console.warn('[PawLink DB] Connessione al database persa (probabile freeze serverless), ritento con una connessione nuova...');
-      return await rawQuery(...args);
-    }
+  pool = {
+    query: async (text, params) => {
+      try {
+        return await runWithFreshClient((client) => client.query(text, params));
+      } catch (err) {
+        const msg = (err && err.message) || '';
+        const isTransient =
+          msg.includes('Connection terminated') ||
+          msg.includes('timeout') ||
+          msg.includes('ECONNRESET') ||
+          err?.code === 'ECONNRESET' ||
+          err?.code === '57P01';
+        if (!isTransient) throw err;
+        console.warn('[PawLink DB] Connessione al database fallita, ritento una volta con una nuova connessione...');
+        return await runWithFreshClient((client) => client.query(text, params));
+      }
+    },
+    connect: async () => {
+      const client = new Client(pgClientConfig);
+      await client.connect();
+      client.release = () => client.end().catch(() => {});
+      return client;
+    },
+    on: () => {},
+    end: async () => {},
   };
 }
 

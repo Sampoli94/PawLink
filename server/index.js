@@ -459,55 +459,6 @@ app.post('/api/rewards/:id/redeem', authenticateToken, async (req, res) => {
   }
 });
 
-// Temporary diagnostic endpoint (no secrets exposed) - to be removed after debugging
-app.get('/api/debug/db-diag', async (req, res) => {
-  const dns = require('dns').promises;
-  const { URL } = require('url');
-  const raw = process.env.DATABASE_URL || process.env.POSTGRES_URL || process.env.SUPABASE_DB_URL || process.env.POSTGRES_URL_NON_POOLING || '';
-  if (!raw) return res.json({ configured: false });
-  let host = null, port = null, pathname = null;
-  try {
-    const u = new URL(raw);
-    host = u.hostname;
-    port = u.port;
-    pathname = u.pathname;
-  } catch (e) {
-    return res.json({ configured: true, parseError: e.message });
-  }
-  let dnsResult = null, dnsError = null;
-  try {
-    dnsResult = await dns.lookup(host, { all: true, verbatim: true });
-  } catch (e) {
-    dnsError = e.message;
-  }
-  let connectOk = false, connectError = null;
-  try {
-    const { Client } = require('pg');
-    const testClient = new Client({
-      connectionString: raw,
-      ssl: { rejectUnauthorized: false },
-      connectionTimeoutMillis: 8000,
-    });
-    await testClient.connect();
-    await testClient.query('SELECT 1');
-    await testClient.end();
-    connectOk = true;
-  } catch (e) {
-    connectError = e.message + (e.cause ? ' | cause: ' + e.cause.message : '');
-  }
-  res.json({
-    configured: true,
-    host,
-    port,
-    pathname,
-    dns: dnsResult,
-    dnsError,
-    connectOk,
-    connectError,
-    nodeVersion: process.version,
-  });
-});
-
 // Global Error Handler
 app.use((err, req, res, next) => {
   console.error('[PawLink Server Error]', err);
