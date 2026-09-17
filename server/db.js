@@ -19,14 +19,42 @@ if (isPg) {
       connectionString.includes('localhost') || connectionString.includes('127.0.0.1')
         ? false
         : { rejectUnauthorized: false },
-    max: 10,
-    idleTimeoutMillis: 30000,
+    // Ambiente serverless (Vercel): ogni istanza della funzione va e viene,
+    // quindi non ha senso un pool "largo" come su un server sempre acceso.
+    // max basso + idle timeout corto riducono le connessioni tenute aperte
+    // che Vercel puo' "congelare" e far morire silenziosamente tra una
+    // richiesta e l'altra.
+    max: 1,
+    idleTimeoutMillis: 5000,
     connectionTimeoutMillis: 10000,
+    allowExitOnIdle: true,
   });
 
   pool.on('error', (err) => {
     console.error('[PawLink DB] Unexpected error on idle Postgres client:', err.message);
   });
+
+  // Se una connessione tenuta nel pool muore mentre la funzione era
+  // "congelata" (tipico su Vercel/serverless), la query fallisce con
+  // "Connection terminated". Invece di far fallire subito la richiesta
+  // all'utente, ritentiamo UNA volta con una connessione fresca.
+  const rawQuery = pool.query.bind(pool);
+  pool.query = async (...args) => {
+    try {
+      return await rawQuery(...args);
+    } catch (err) {
+      const msg = (err && err.message) || '';
+      const isStaleConnection =
+        msg.includes('Connection terminated') ||
+        msg.includes('timeout') ||
+        msg.includes('ECONNRESET') ||
+        err?.code === 'ECONNRESET' ||
+        err?.code === '57P01';
+      if (!isStaleConnection) throw err;
+      console.warn('[PawLink DB] Connessione al database persa (probabile freeze serverless), ritento con una connessione nuova...');
+      return await rawQuery(...args);
+    }
+  };
 }
 
 // Fallback JSON DB configuration
