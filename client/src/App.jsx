@@ -76,6 +76,7 @@ export default function App() {
   const mapInstanceRef = useRef(null);
   const markersLayerRef = useRef(null);
   const userRef = useRef(user);
+  const hasCenteredOnUserRef = useRef(false);
 
   // Keep userRef updated to prevent closure stale state in Leaflet click handler
   useEffect(() => {
@@ -125,17 +126,34 @@ export default function App() {
           const coords = { lat: pos.coords.latitude, lng: pos.coords.longitude };
           setUserCoords(coords);
           setMapCenter([coords.lat, coords.lng]);
-          
+
           // Set default coordinates for new reports
           setNewReportLat(coords.lat.toFixed(4));
           setNewReportLng(coords.lng.toFixed(4));
         },
         (err) => {
           console.log("Geolocalizzazione rifiutata o non disponibile, uso default");
+        },
+        {
+          // Posizione il piu' precisa possibile (usa GPS quando disponibile,
+          // non solo la posizione approssimata da IP/rete)
+          enableHighAccuracy: true,
+          timeout: 10000,
+          maximumAge: 0
         }
       );
     }
   }, []);
+
+  // 2b. Center the map on the user's exact GPS position the first time it's
+  // available (whether the map already existed or gets created afterwards)
+  useEffect(() => {
+    const map = mapInstanceRef.current;
+    if (map && userCoords && !hasCenteredOnUserRef.current) {
+      map.setView([userCoords.lat, userCoords.lng], 16);
+      hasCenteredOnUserRef.current = true;
+    }
+  }, [userCoords, currentTab]);
 
   // 2. Leaflet Map Initialization Hook
   useEffect(() => {
