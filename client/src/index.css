@@ -496,6 +496,11 @@ h1, h2, h3, h4, h5, h6 {
   background: #0b0f19 !important;
   font-family: inherit;
 }
+/* Tile scure "finte": invertiamo i tile OpenStreetMap standard (gratis,
+   nessuna API key) invece di dipendere da un provider a pagamento. */
+.pawlink-dark-tiles {
+  filter: invert(1) hue-rotate(180deg) brightness(0.95) contrast(0.9) saturate(0.9);
+}
 .leaflet-popup-content-wrapper {
   background: rgba(17, 24, 39, 0.9) !important;
   backdrop-filter: blur(12px) !important;

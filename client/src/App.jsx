@@ -147,11 +147,14 @@ export default function App() {
       // Add zoom control on the top-right
       L.control.zoom({ position: 'topright' }).addTo(map);
 
-      // Dark Mode tile layer (CartoDB Dark Matter)
-      L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
-        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
-        subdomains: 'abcd',
-        maxZoom: 20
+      // Dark Mode tile layer: OpenStreetMap standard tiles (gratis, nessuna API key)
+      // con filtro CSS per l'aspetto scuro (CARTO Dark Matter ora richiede una
+      // API key e mostrava il watermark "API KEY REQUIRED" sulla mappa).
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+        subdomains: 'abc',
+        maxZoom: 19,
+        className: 'pawlink-dark-tiles'
       }).addTo(map);
 
       // Create a layer group for active markers
