@@ -1,3 +1,21 @@
+// Accesso ai dati di PawLink. Se c'è un database Postgres (DATABASE_URL o simili) usa quello,
+// altrimenti salva tutto in un file JSON (comodo per le prove sul PC).
+// Ogni funzione di db funziona in entrambi i casi: se ne aggiungi una, scrivi sia la parte Postgres sia quella su file.
+//
+// Indice delle sezioni:
+//   1. Collegamento a Postgres
+//   2. Database di riserva su file
+//   3. Conversione dei dati per l'app
+//   4. Avvio del database e creazione delle tabelle
+//   5. Dati iniziali (premi, veterinari, negozi)
+//   6. Copia dei dati dal vecchio file e fine avvio
+//   7. Utenti
+//   8. Segnalazioni: lettura e creazione
+//   9. Segnalazioni: aggiornamento
+//   10. Chat
+//   11. Premi, veterinari e negozi
+
+// Sezione 1 - Collegamento a Postgres
 require('dotenv').config();
 const fs = require('fs');
 const path = require('path');
@@ -77,6 +95,7 @@ if (isPg) {
   };
 }
 
+// Sezione 2 - Database di riserva su file
 // Fallback JSON DB configuration
 const DB_FILE = process.env.VERCEL
   ? path.join('/tmp', 'database.json')
@@ -126,6 +145,8 @@ function writeJsonDb(data) {
   }
 }
 
+// Sezione 3 - Conversione dei dati per l'app
+// Il database usa nomi_con_trattino_basso, l'app usaNomiCosì: queste funzioni traducono.
 // Data Mappers (Postgres snake_case -> Frontend camelCase)
 function mapUser(row) {
   if (!row) return null;
@@ -213,6 +234,8 @@ function mapStore(row) {
   };
 }
 
+// Sezione 4 - Avvio del database e creazione delle tabelle
+// Le tabelle vengono create solo se non esistono già: aggiungere colonne qui non modifica le tabelle esistenti.
 // Database Initialization & Migration
 let isInitialized = false;
 let initPromise = null;
@@ -302,6 +325,7 @@ async function initDb() {
           );
         `);
 
+        // Sezione 5 - Dati iniziali (premi, veterinari, negozi)
         // Seed rewards if empty
         const rewCount = await client.query('SELECT COUNT(*) FROM rewards');
         if (parseInt(rewCount.rows[0].count, 10) === 0) {
@@ -335,6 +359,7 @@ async function initDb() {
           }
         }
 
+        // Sezione 6 - Copia dei dati dal vecchio file e fine avvio
         // If Postgres users/reports tables are empty and a local database.json has existing records, migrate them!
         const userCount = await client.query('SELECT COUNT(*) FROM users');
         if (parseInt(userCount.rows[0].count, 10) === 0) {
@@ -434,6 +459,7 @@ async function initDb() {
   return initPromise;
 }
 
+// Sezione 7 - Utenti
 // Unified Database API Methods
 const db = {
   isPostgres: () => isPg,
@@ -516,6 +542,7 @@ const db = {
   },
 
   // --- REPORTS ---
+  // Sezione 8 - Segnalazioni: lettura e creazione
   async getReports() {
     await initDb();
     if (isPg) {
@@ -572,6 +599,7 @@ const db = {
     }
   },
 
+  // Sezione 9 - Segnalazioni: aggiornamento
   async updateReport(id, updates) {
     await initDb();
     if (isPg) {
@@ -612,6 +640,7 @@ const db = {
   },
 
   // --- CHATS ---
+  // Sezione 10 - Chat
   async getUserChats(userId) {
     await initDb();
     if (isPg) {
@@ -686,6 +715,7 @@ const db = {
   },
 
   // --- REWARDS ---
+  // Sezione 11 - Premi, veterinari e negozi
   async getRewards() {
     await initDb();
     if (isPg) {

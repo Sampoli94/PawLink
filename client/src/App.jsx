@@ -1,3 +1,32 @@
+// Tutta l'app PawLink in un solo componente: stato, collegamento al server, mappa, segnalazioni,
+// chat, premi, diagnostica e finestre di login e nuova segnalazione.
+// Se il server non risponde, l'app funziona lo stesso con dati di prova salvati nel browser (sezione 7).
+//
+// Indice delle sezioni:
+//   1. Indirizzo del server e foto di esempio
+//   2. Stato dell'app
+//   3. Collegamento al server
+//   4. Posizione e mappa
+//   5. Segnaposti sulla mappa
+//   6. Caricamento dei dati dal server
+//   7. Modalità senza server (dati di prova)
+//   8. Login e registrazione
+//   9. Nuova segnalazione
+//   10. Presa in carico e risoluzione
+//   11. Chat
+//   12. Premi e diagnostica
+//   13. Filtri e schermata di caricamento
+//   14. Grafica: barra in alto
+//   15. Grafica: scheda mappa
+//   16. Grafica: scheda segnalazioni
+//   17. Grafica: pulsanti delle segnalazioni
+//   18. Grafica: scheda chat
+//   19. Grafica: scheda premi
+//   20. Grafica: scheda diagnostica
+//   21. Grafica: piè di pagina e finestra nuova segnalazione
+//   22. Grafica: finestra di login e registrazione
+//   23. Grafica: barra in basso per il telefono
+
 import React, { useState, useEffect, useRef } from 'react';
 import { 
   MapPin, AlertTriangle, MessageSquare, Award, User, Shield, 
@@ -7,6 +36,8 @@ import {
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 
+// Sezione 1 - Indirizzo del server e foto di esempio
+// In locale usa il server sul PC, online usa /api dello stesso sito.
 const API_BASE = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
   ? 'http://localhost:5000/api'
   : '/api';
@@ -19,6 +50,8 @@ const MOCK_ANIMAL_PHOTOS = [
   { name: 'Gatto smarrito bianco', url: 'https://images.unsplash.com/photo-1533738363-b7f9aef128ce?auto=format&fit=crop&q=80&w=400' }
 ];
 
+// Sezione 2 - Stato dell'app
+// La posizione iniziale della mappa è Gioia Tauro (mapCenter): si cambia qui.
 export default function App() {
   const [token, setToken] = useState(localStorage.getItem('pwl_token') || '');
   const [user, setUser] = useState(null);
@@ -83,6 +116,7 @@ export default function App() {
     userRef.current = user;
   }, [user]);
 
+  // Sezione 3 - Collegamento al server
   // Test Server Connection & Load Initial Data
   useEffect(() => {
     checkServerConnection();
@@ -118,6 +152,8 @@ export default function App() {
     }
   };
 
+  // Sezione 4 - Posizione e mappa
+  // La mappa usa Leaflet con le mappe di OpenStreetMap.
   // 1. Geolocation Hook - runs on mount
   useEffect(() => {
     if (navigator.geolocation) {
@@ -200,6 +236,7 @@ export default function App() {
     };
   }, [currentTab, loading]);
 
+  // Sezione 5 - Segnaposti sulla mappa
   // 3. Leaflet Markers Update Hook
   useEffect(() => {
     const map = mapInstanceRef.current;
@@ -306,6 +343,7 @@ export default function App() {
 
   }, [reports, overlays, userCoords, currentTab, loading]);
 
+  // Sezione 6 - Caricamento dei dati dal server
   // Load Data from Express Backend
   const loadServerData = async () => {
     try {
@@ -333,6 +371,8 @@ export default function App() {
     }
   };
 
+  // Sezione 7 - Modalità senza server (dati di prova)
+  // I dati di prova vengono salvati nel browser con saveEmulatedDb.
   // Emulation fallback when server is not running
   const loadLocalEmulatedData = () => {
     // Check localStorage for emulated DB
@@ -434,6 +474,7 @@ export default function App() {
     localStorage.setItem('pawlink_db', JSON.stringify(newDb));
   };
 
+  // Sezione 8 - Login e registrazione
   // --- ACTIONS ---
 
   // Auth Operations
@@ -522,6 +563,7 @@ export default function App() {
     setSelectedChat(null);
   };
 
+  // Sezione 9 - Nuova segnalazione
   // Submit Report
   const handleCreateReport = async (e) => {
     e.preventDefault();
@@ -606,6 +648,7 @@ export default function App() {
     setIsReportSubmitting(false);
   };
 
+  // Sezione 10 - Presa in carico e risoluzione
   // Take Charge
   const handleTakeCharge = async (reportId) => {
     if (!user) {
@@ -702,6 +745,7 @@ export default function App() {
     }
   };
 
+  // Sezione 11 - Chat
   // Chat messages management
   const handleOpenChat = async (chat) => {
     setSelectedChat(chat);
@@ -765,6 +809,8 @@ export default function App() {
     }
   };
 
+  // Sezione 12 - Premi e diagnostica
+  // La diagnostica è una guida orientativa basata su un elenco di sintomi, non sostituisce il veterinario.
   // Redeem Reward
   const handleRedeemReward = async (rewardId) => {
     if (!user) {
@@ -853,6 +899,7 @@ export default function App() {
     }
   };
 
+  // Sezione 13 - Filtri e schermata di caricamento
   // Click on Custom Town Map to position Marker
   const handleMapClick = (lat, lng) => {
     if (!user) {
@@ -884,6 +931,7 @@ export default function App() {
   // --- RENDERING APPLICATION WORKSPACE ---
   return (
     <div className="min-h-screen flex flex-col">
+      {/* Sezione 14 - Grafica: barra in alto */}
       {/* HEADER */}
       <header className="glass-header px-6 py-4 flex items-center justify-between gap-4">
         {/* Desktop Tabs Navigation - Ultra Premium style (on the Left) */}
@@ -972,6 +1020,7 @@ export default function App() {
         </div>
       </header>
 
+      {/* Sezione 15 - Grafica: scheda mappa */}
       {/* CORE WORKSPACE */}
       <div className="flex-1 max-w-7xl w-full mx-auto p-4 md:p-6 pb-24 md:pb-6 animate-fade-in">
         {/* Tab Contents Area - taking full width for maximum immersion */}
@@ -1052,6 +1101,7 @@ export default function App() {
             </div>
           )}
 
+          {/* Sezione 16 - Grafica: scheda segnalazioni */}
           {/* TAB 2: REPORTS LIST */}
           {currentTab === 'segnalazioni' && (
             <div className="space-y-6 animate-fade-in">
@@ -1144,6 +1194,7 @@ export default function App() {
                         </div>
                       </div>
 
+                      {/* Sezione 17 - Grafica: pulsanti delle segnalazioni */}
                       {/* Actions footer */}
                       <div className="pt-4 border-t border-white/5 flex flex-col gap-2">
                         <div className="text-xs text-gray-400 flex items-center justify-between">
@@ -1213,6 +1264,7 @@ export default function App() {
             </div>
           )}
 
+          {/* Sezione 18 - Grafica: scheda chat */}
           {/* TAB 3: CHATS */}
           {currentTab === 'chat' && (
             !user ? (
@@ -1320,6 +1372,7 @@ export default function App() {
             </div>
           ))}
 
+          {/* Sezione 19 - Grafica: scheda premi */}
           {/* TAB 4: REWARDS */}
           {currentTab === 'premi' && (
             <div className="space-y-6 animate-fade-in">
@@ -1397,6 +1450,7 @@ export default function App() {
             </div>
           )}
 
+          {/* Sezione 20 - Grafica: scheda diagnostica */}
           {/* TAB 5: CLINICA ASSISTENTE IA */}
           {currentTab === 'triage' && (
             <div className="space-y-6 animate-fade-in">
@@ -1493,6 +1547,7 @@ export default function App() {
         </main>
       </div>
 
+      {/* Sezione 21 - Grafica: piè di pagina e finestra nuova segnalazione */}
       {/* FOOTER */}
       <footer className="glass-header mt-auto py-4 px-6 text-center text-xs text-gray-400 border-t border-white/5">
         <p>© 2026 PawLink. Piattaforma per la tutela, il soccorso e la salvaguardia degli animali e dei randagi su tutto il territorio.</p>
@@ -1574,6 +1629,7 @@ export default function App() {
         </div>
       )}
 
+      {/* Sezione 22 - Grafica: finestra di login e registrazione */}
       {/* DIALOG 2: LOGIN / REGISTER MODAL */}
       {isAuthModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 px-4">
@@ -1682,6 +1738,7 @@ export default function App() {
         </div>
       )}
 
+      {/* Sezione 23 - Grafica: barra in basso per il telefono */}
       {/* Mobile Floating Bottom Bar */}
       <nav className="lg:hidden fixed bottom-4 left-4 right-4 z-40 glass-panel p-2 flex justify-around items-center border border-white/10 shadow-2xl backdrop-blur-xl rounded-2xl">
         <button 

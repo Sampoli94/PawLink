@@ -1,3 +1,18 @@
+/* Stile di tutta l'app PawLink (tema scuro).
+   I colori principali sono nelle variabili di :root all'inizio: per cambiare tinta modifica quelle.
+   Dalla sezione 5 in poi ci sono piccole classi di utilità (stile Tailwind) usate nei componenti:
+   se ne serve una nuova, aggiungila lì con lo stesso schema di nome.
+   
+   Indice delle sezioni:
+     1. Caratteri, colori e base
+     2. Barra in alto, mappa e animazioni
+     3. Pulsanti, campi dei moduli e scelta del ruolo
+     4. Classi di utilità: spazi, griglie e schermi grandi
+     5. Classi di utilità: dimensioni, colori e testi
+     6. Classi di utilità: altri colori e bordi
+     7. Mappa scura e finestre della mappa */
+
+/* Sezione 1 - Caratteri, colori e base */
 @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap');
 
 :root {
@@ -90,6 +105,7 @@ h1, h2, h3, h4, h5, h6 {
   box-shadow: 0 12px 40px 0 rgba(0, 0, 0, 0.5);
 }
 
+/* Sezione 2 - Barra in alto, mappa e animazioni */
 /* Header & Navbar styling */
 .glass-header {
   position: sticky;
@@ -155,6 +171,7 @@ h1, h2, h3, h4, h5, h6 {
   animation: fadeIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
+/* Sezione 3 - Pulsanti, campi dei moduli e scelta del ruolo */
 /* Floating Actions */
 .btn-primary {
   background: linear-gradient(135deg, var(--primary) 0%, #059669 100%);
@@ -243,6 +260,7 @@ h1, h2, h3, h4, h5, h6 {
   background: rgba(16, 185, 129, 0.05);
 }
 
+/* Sezione 4 - Classi di utilità: spazi, griglie e schermi grandi */
 /* ---------------------------------------------------- */
 /* Micro-Utility Classes (Tailwind CSS emulation)      */
 /* ---------------------------------------------------- */
@@ -306,6 +324,7 @@ h1, h2, h3, h4, h5, h6 {
 .min-h-\[480px\] { min-height: 480px; }
 .h-\[540px\] { height: 540px; }
 
+/* Sezione 5 - Classi di utilità: dimensioni, colori e testi */
 .p-1 { padding: 0.25rem; }
 .p-2 { padding: 0.5rem; }
 .p-2\.5 { padding: 0.625rem; }
@@ -403,6 +422,7 @@ h1, h2, h3, h4, h5, h6 {
 .text-red-300 { color: #fca5a5; }
 .text-red-400 { color: #f87171; }
 
+/* Sezione 6 - Classi di utilità: altri colori e bordi */
 .bg-emerald-950\/30 { background-color: rgba(6, 78, 59, 0.3); }
 .bg-emerald-950\/20 { background-color: rgba(6, 78, 59, 0.2); }
 .bg-emerald-500\/10 { background-color: rgba(16, 185, 129, 0.1); }
@@ -491,6 +511,8 @@ h1, h2, h3, h4, h5, h6 {
 .col-span-3 { grid-column: span 3 / span 3; }
 .cursor-not-allowed { cursor: not-allowed; }
 
+/* Sezione 7 - Mappa scura e finestre della mappa
+   La mappa scura si ottiene invertendo i colori delle mappe normali: non serve un servizio a pagamento. */
 /* Custom Leaflet Dark/Glassmorphic Style Overrides */
 .leaflet-container {
   background: #0b0f19 !important;

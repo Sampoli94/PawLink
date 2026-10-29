@@ -1,3 +1,21 @@
+// Server Express di PawLink: registrazione e login, segnalazioni dei randagi, chat, mappa e premi.
+// In locale si avvia con node server/index.js; su Vercel lo usa api/index.js.
+//
+// Indice delle sezioni:
+//   1. Avvio, foto caricate e controlli
+//   2. Registrazione
+//   3. Login e profilo
+//   4. Segnalazioni: elenco e nuova segnalazione
+//   5. Segnalazioni: presa in carico e rilascio
+//   6. Segnalazioni: risoluzione e punti
+//   7. Chat
+//   8. Mappa: veterinari e negozi
+//   9. Premi e avvio del server
+
+// Sezione 1 - Avvio, foto caricate e controlli
+// Online serve la variabile JWT_SECRET: senza, il server si ferma con un messaggio chiaro invece di usare una chiave nota.
+// Il valore scritto qui sotto vale solo per le prove sul PC.
+// Le foto online vanno in /tmp e non restano per sempre.
 require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
@@ -10,7 +28,8 @@ const db = require('./db');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
-const JWT_SECRET = process.env.JWT_SECRET || 'pawlink-secret-key-12345';
+const JWT_SECRET = process.env.JWT_SECRET || (process.env.VERCEL ? '' : 'pawlink-secret-key-12345');
+if (!JWT_SECRET) throw new Error('Variabile JWT_SECRET mancante su Vercel');
 
 // Middlewares
 app.use(cors());
@@ -68,6 +87,7 @@ function analyzeContentForModeration(description) {
   return { isSensitive, containsObscene };
 }
 
+// Sezione 2 - Registrazione
 // --- AUTH APIS ---
 
 app.post('/api/auth/register', async (req, res) => {
@@ -119,6 +139,7 @@ app.post('/api/auth/register', async (req, res) => {
   }
 });
 
+// Sezione 3 - Login e profilo
 app.post('/api/auth/login', async (req, res) => {
   const { email, password } = req.body;
   if (!email || !password) {
@@ -176,6 +197,7 @@ app.get('/api/auth/me', authenticateToken, async (req, res) => {
   }
 });
 
+// Sezione 4 - Segnalazioni: elenco e nuova segnalazione
 // --- REPORTS APIS ---
 
 app.get('/api/reports', async (req, res) => {
@@ -226,6 +248,7 @@ app.post('/api/reports', authenticateToken, upload.single('photo'), async (req, 
   }
 });
 
+// Sezione 5 - Segnalazioni: presa in carico e rilascio
 // Take charge of report
 app.patch('/api/reports/:id/take-charge', authenticateToken, async (req, res) => {
   try {
@@ -292,6 +315,8 @@ app.patch('/api/reports/:id/release', authenticateToken, async (req, res) => {
   }
 });
 
+// Sezione 6 - Segnalazioni: risoluzione e punti
+// Qui si decide quanti punti guadagna chi risolve una segnalazione.
 // Resolve report (awards points)
 app.patch('/api/reports/:id/resolve', authenticateToken, async (req, res) => {
   try {
@@ -324,6 +349,7 @@ app.patch('/api/reports/:id/resolve', authenticateToken, async (req, res) => {
   }
 });
 
+// Sezione 7 - Chat
 // --- CHAT APIS ---
 
 // Get active chats for user
@@ -380,6 +406,7 @@ app.post('/api/chats/:id/messages', authenticateToken, async (req, res) => {
   }
 });
 
+// Sezione 8 - Mappa: veterinari e negozi
 // --- MAP OVERLAYS APIS ---
 
 app.get('/api/map/overlays', async (req, res) => {
@@ -422,6 +449,7 @@ app.get('/api/map/overlays', async (req, res) => {
   }
 });
 
+// Sezione 9 - Premi e avvio del server
 // --- REWARDS / GAMIFICATION ---
 
 app.get('/api/rewards', async (req, res) => {
