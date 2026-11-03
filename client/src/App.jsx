@@ -1551,7 +1551,7 @@ export default function App() {
       {/* FOOTER */}
       <footer className="glass-header mt-auto py-4 px-6 text-center text-xs text-gray-400 border-t border-white/5">
         <p>© 2026 PawLink. Piattaforma per la tutela, il soccorso e la salvaguardia degli animali e dei randagi su tutto il territorio.</p>
-        <p className="mt-1"><a href="https://sp-studio-digitale.vercel.app/" target="_blank" rel="noopener noreferrer" className="hover:text-gray-300">Realizzato da SP Studio Digitale</a></p>
+        <p className="mt-1"><a href="https://spstudiodigitale.it/" target="_blank" rel="noopener noreferrer" className="hover:text-gray-300">Realizzato da SP Studio Digitale</a></p>
       </footer>
 
       {/* DIALOG 1: REPORT AD HOC FORM */}
