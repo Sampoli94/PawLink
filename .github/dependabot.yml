@@ -1,0 +1,30 @@
+# Aggiornamenti di sicurezza raggruppati in una sola proposta per progetto.
+version: 2
+updates:
+  - package-ecosystem: "npm"
+    directory: "/"
+    schedule:
+      interval: "daily"
+    open-pull-requests-limit: 0
+    groups:
+      sicurezza:
+        applies-to: security-updates
+        patterns: ["*"]
+  - package-ecosystem: "npm"
+    directory: "/client"
+    schedule:
+      interval: "daily"
+    open-pull-requests-limit: 0
+    groups:
+      sicurezza:
+        applies-to: security-updates
+        patterns: ["*"]
+  - package-ecosystem: "npm"
+    directory: "/server"
+    schedule:
+      interval: "daily"
+    open-pull-requests-limit: 0
+    groups:
+      sicurezza:
+        applies-to: security-updates
+        patterns: ["*"]
